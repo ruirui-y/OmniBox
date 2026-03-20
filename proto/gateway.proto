@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package game.rpc;
+
+option cc_generic_services = true;
+
+// 后端服务 -> 网关的推送请求
+message PushMessageRequest 
+{
+    int32 user_id = 1;                                                  // 告诉网关：把消息推给哪个玩家
+    int32 msg_type = 2;                                                 // 消息类型（比如 1代表聊天广播，2代表匹配成功对局信息）
+    string content = 3;                                                 // 具体的推送内容（比如对局服务器的 IP 和 Port）
+}
+
+message PushMessageResponse 
+{
+    int32 errcode = 1;                                                  // 0表示网关推送成功，非0表示玩家可能掉线了
+    string errmsg = 2;
+}
+
+// 网关暴露给后端微服务的专用 RPC 接口
+service GatewayService 
+{
+    // 后端调用此方法，网关负责将消息转发给真实的客户端
+    rpc PushMessage(PushMessageRequest) returns(PushMessageResponse);
+}

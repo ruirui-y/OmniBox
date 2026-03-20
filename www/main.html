@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>OmniBox | 万象魔盒</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #00ffcc;
+            font-family: monospace;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .box {
+            border: 2px dashed #00ffcc;
+            padding: 50px;
+            width: 50%;
+            margin: 0 auto;
+            border-radius: 10px;
+        }
+
+        button {
+            background-color: #00ffcc;
+            color: #121212;
+            padding: 10px 20px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>OmniBox 核心控制台</h1>
+    <div class="box">
+        <h3>传送门：极速文件直传测试</h3>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="myfile" style="color: #fff;"><br><br>
+            <button type="submit">启动传送</button>
+        </form>
+    </div>
+</body>
+</html>

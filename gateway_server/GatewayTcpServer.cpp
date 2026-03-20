@@ -53,6 +53,20 @@ void GatewayTcpServer::OnConnection(const std::shared_ptr<TcpConnection>& conn)
 
 void GatewayTcpServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)
 {
+    // 判断是不是http请求
+    if (buffer->ReadableBytes() >= 4)
+    {
+        // 核心：只看不取 (peek)。绝对不能用 retrieve，否则原来 RPC 的包头就被吞了！
+        std::string header_peek = std::string(buffer->peek(), 4);
+
+        if (header_peek == "GET " || header_peek == "POST")
+        {
+            // 嗅探命中！这是来自浏览器的 HTTP 请求
+            HandleHttpRequest(conn, buffer);
+            return;                                                                                 
+        }
+    }
+
     // len(4) + msg_id(4) + data, len = msg_id + data
     while (buffer->ReadableBytes() >= 8)
     {
@@ -80,6 +94,29 @@ void GatewayTcpServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buf
             break;
         }
     }
+}
+
+void GatewayTcpServer::HandleHttpRequest(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)
+{
+    // 1. 读取HTTP报文内容
+    std::string http_request = buffer->RetrieveAllAsString();
+
+    LOG_INFO << "Receive Http Request: " << http_request;
+
+    // 2. 组装响应报文
+    std::string http_response =
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: application/json; charset=utf-8\r\n"
+        "Access-Control-Allow-Origin: *\r\n"   // 允许跨域，以后网页前后端分离全靠它
+        "\r\n"                                 // 空行，标志着 Header 结束，Body 开始
+        "{\"status\": \"success\", \"message\": \"OmniBox Gateway is alive! Welcome to the Matrix.\"}";
+
+    // 3. 把这串文本打回给浏览器
+    conn->Send(http_response);
+
+    // 4. HTTP/1.1 默认是 Keep-Alive 长连接，为了避免测试时浏览器一直挂着，我们先粗暴切断
+    // 等以后做大文件上传时，再精细控制连接的生命周期
+    conn->ForceClose();
 }
 
 // ================== 具体的业务处理 (Handler) ==================

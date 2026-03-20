@@ -28,6 +28,9 @@ private:
 private:    
     void RegisterHandler(uint32_t msg_id, MsgHandler handler);                                                          // 注册路由的回调函数
     
+    // 处理HTTP请求
+    void HandleHttpRequest(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer);
+
     // 具体的业务处理函数 (登录)
     void HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const std::string& pb_data);                        
 

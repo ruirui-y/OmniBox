@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package omnibox;
+
+// 专门控制不要生成太臃肿的代码
+option cc_generic_services = true;
+
+// 1. 文件碎片上传请求
+message FileChunkUploadRequest 
+{
+	string file_name = 1;											// 文件名 (也可以改成 UUID session_id 避免重名)
+	int64 offset = 2;												// 这个碎片在整个文件里的偏移量 (比如第 0 字节，第 65536 字节)
+	bytes data = 3;													// 真正的碎片实体数据 (建议每次最大传 64KB)
+	bool is_eof = 4;												// End Of File: 是不是最后一块碎片？
+}
+
+// 2. 碎片接收响应
+message FileChunkUploadResponse 
+{
+	bool success = 1;												// 这块碎片是否成功收到并落盘
+	string message = 2;												// 错误信息或成功提示
+	int64 next_offset = 3;											// 告诉网关下一块该从哪开始传，用于断点续传
+}
+
+// 3. 定义文件传输 RPC 服务
+service TransferService 
+{
+	// 流式上传碎片的接口
+	rpc UploadChunk(FileChunkUploadRequest) returns (FileChunkUploadResponse);
+}

@@ -9,16 +9,16 @@ void RPCServer::RegisterService(google::protobuf::Service* service)
 	services[service->GetDescriptor()->name()] = service;
 }
 
-void RPCServer::Run()
+void RPCServer::Run(int thread_num, int conn_time_out)
 {
-	TcpServer server(&event_loop_, ip_, port_, 1000);
+	TcpServer server(&event_loop_, ip_, port_, conn_time_out);
 	server.SetMessageCallback(
 		[this](const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)
 		{
 			OnMessage(conn, buffer);
 		});
 
-	server.Start(0);
+	server.Start(thread_num);
 	event_loop_.Loop();
 }
 

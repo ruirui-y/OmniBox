@@ -15,7 +15,7 @@ public:
 		:ip_(ip), port_(port) {}
 
 	void RegisterService(google::protobuf::Service* service);
-	void Run();
+	void Run(int thread_num = 0, int conn_time_out = 1000);
 
 private:
 	void OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer);

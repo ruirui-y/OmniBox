@@ -33,3 +33,4 @@ include_directories(
 add_subdirectory(rpc_core)
 add_subdirectory(login_server)
 add_subdirectory(gateway_server)
+add_subdirectory(transfer_server)

@@ -21,63 +21,74 @@ class OmniUploader {
 
     async start() {
         if (this.fileInput.files.length === 0) {
-            alert("⚠️ 请先在弹药库中选择文件！");
-            return;
+            alert("⚠️ 请先在弹药库中选择文件！"); return;
         }
-
         const file = this.fileInput.files[0];
-
         this.uploadBtn.disabled = true;
         this.uploadBtn.style.background = "#555";
-        this.uploadBtn.innerText = "🚀 传送中...";
 
-        // ⏱️ 按下扳机的瞬间，记录绝对起点时间
         this.startTime = Date.now();
         this.timeText.innerText = "⏱️ 已耗时: 0.0s";
         this.speedText.innerText = "🚀 速率: 计算中...";
 
-        // 启动递归扫射
-        this.shootNextChunk(file, 0);
+        // 🚀 启动滑动窗口并发引擎！
+        try {
+            await this.uploadConcurrently(file);
+            this.onSuccess();
+        } catch (error) {
+            this.onError(error.message);
+        }
     }
 
-    async shootNextChunk(file, offset) {
-        if (offset >= file.size) {
-            this.onSuccess();
-            return;
+    async uploadConcurrently(file) {
+        let offset = 0;
+        const MAX_CONCURRENT = 4; // 🚀 工业级并发度：保持 4 个切片同时在天上飞！
+        let activePromises = [];
+
+        while (offset < file.size) {
+            const currentOffset = offset;
+            const chunk = file.slice(currentOffset, currentOffset + this.CHUNK_SIZE);
+            const isEof = (currentOffset + chunk.size >= file.size);
+
+            offset += this.CHUNK_SIZE; // 游标继续无情推进
+
+            // 将发包动作封装成 Promise
+            const p = this.shootChunk(file.name, currentOffset, isEof, chunk).then(() => {
+                // 收到 200 OK 后，更新进度条，并从活跃池中移除自己
+                this.updateProgress(currentOffset, chunk.size, file.size);
+                activePromises.splice(activePromises.indexOf(p), 1);
+            });
+
+            activePromises.push(p);
+
+            // 如果当前在天上飞的切片达到了上限 (4个)，就等！
+            // Promise.race 会等待最快落地的那个切片，只要腾出 1 个空位，循环立刻继续，补充弹药！
+            if (activePromises.length >= MAX_CONCURRENT) {
+                await Promise.race(activePromises);
+            }
         }
 
-        const chunk = file.slice(offset, offset + this.CHUNK_SIZE);
-        const isEof = (offset + chunk.size >= file.size);
+        // 等待最后几块肉丁彻底落地
+        await Promise.all(activePromises);
+    }
 
-        // 1. 发包前，刷新仪表盘
-        this.updateProgress(offset, chunk.size, file.size);
-
+    // 独立的发包函数 (剥离了进度刷新和重试逻辑，变得极其纯粹)
+    async shootChunk(fileName, offset, isEof, chunkData) {
         const headers = {
             'Content-Type': 'application/octet-stream',
-            'X-File-Name': encodeURIComponent(file.name),
+            'X-File-Name': encodeURIComponent(fileName),
             'X-File-Offset': offset.toString(),
             'X-File-Eof': isEof ? '1' : '0'
         };
 
-        try {
-            const response = await fetch('/upload_chunk', {
-                method: 'POST',
-                headers: headers,
-                body: chunk
-            });
+        const response = await fetch('/upload_chunk', {
+            method: 'POST',
+            headers: headers,
+            body: chunkData
+        });
 
-            if (!response.ok) {
-                throw new Error(`Gateway 拒绝接收，状态码: ${response.status}`);
-            }
-
-            // 成功收到 200 OK，立刻切下一刀！
-            this.shootNextChunk(file, offset + chunk.size);
-
-        } catch (error) {
-            this.onError(error.message);
-            this.uploadBtn.disabled = false;
-            this.uploadBtn.style.background = "#00ffcc";
-            this.uploadBtn.innerText = "🔥 重试";
+        if (!response.ok) {
+            throw new Error(`Gateway HTTP 异常: ${response.status}`);
         }
     }
 

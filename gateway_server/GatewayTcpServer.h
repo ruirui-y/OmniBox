@@ -48,6 +48,7 @@ private:
 
     // 网关全局共享的rpc通道
     std::shared_ptr<MyChannel> login_channel_;
+    std::shared_ptr<MyChannel> transfer_channel_;
 };
 
 #endif

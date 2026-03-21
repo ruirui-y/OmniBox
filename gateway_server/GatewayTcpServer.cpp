@@ -2,10 +2,14 @@
 #include <mymuduo/Log/Logger.h>
 #include <any>
 #include <arpa/inet.h>
+#include <fstream>
+#include <sstream>
+#include <regex>
 #include "client_gateway.pb.h"
 #include "MsgID.h"
 #include "login.pb.h"     
-#include "RedisClient.h"     
+#include "RedisClient.h"   
+#include "transfer.pb.h"
 #include "MyController.h"
 using namespace std::placeholders;
 
@@ -20,6 +24,7 @@ GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint1
 
     // 建立长连接
     login_channel_ = std::make_shared<MyChannel>("127.0.0.1", 9090);
+    transfer_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8082);
 }
 
 void GatewayTcpServer::Start(int thread_num)
@@ -98,25 +103,168 @@ void GatewayTcpServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buf
 
 void GatewayTcpServer::HandleHttpRequest(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)
 {
-    // 1. 读取HTTP报文内容
-    std::string http_request = buffer->RetrieveAllAsString();
+    // ==========================================
+    // 阶段 1：TCP 半包拦截与头部解析
+    // ==========================================
+    std::string raw_data = std::string(buffer->peek(), buffer->ReadableBytes());
 
-    LOG_INFO << "Receive Http Request: " << http_request;
+    // 查找HTTP头部和包体的分界线
+    size_t header_end_pos = raw_data.find("\r\n\r\n");
+    if (header_end_pos == std::string::npos)
+    {
+        // 没有收齐头部
+        return;
+    }
 
-    // 2. 组装响应报文
-    std::string http_response =
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: application/json; charset=utf-8\r\n"
-        "Access-Control-Allow-Origin: *\r\n"   // 允许跨域，以后网页前后端分离全靠它
-        "\r\n"                                 // 空行，标志着 Header 结束，Body 开始
-        "{\"status\": \"success\", \"message\": \"OmniBox Gateway is alive! Welcome to the Matrix.\"}";
+    // 分离Header文本
+    std::string headers = raw_data.substr(0, header_end_pos);
 
-    // 3. 把这串文本打回给浏览器
-    conn->Send(http_response);
+    // 解析出请求方法和URI
+    char method[16], uri[256], version[16];
+    sscanf(headers.c_str(), "%s %s %s", method, uri, version);
 
-    // 4. HTTP/1.1 默认是 Keep-Alive 长连接，为了避免测试时浏览器一直挂着，我们先粗暴切断
-    // 等以后做大文件上传时，再精细控制连接的生命周期
-    conn->ForceClose();
+    // ==========================================
+    // 阶段 2：路由分发
+    // ==========================================
+
+    if (strcmp(method, "GET") == 0)
+    {
+        // 1. 动态寻址：直接用浏览器发来的 uri 拼接本地路径
+        std::string target_file = "./www";
+        if (strcmp(uri, "/") == 0) 
+        {
+            target_file += "/main.html";                                    // 根目录默认打向主页
+        }
+        else
+        {
+            target_file += uri;                                             // 比如 uri 是 "/uploader.js"，这里自动变成 "./www/uploader.js"
+        }
+
+        // 2. 尝试打开浏览器索要的这个文件
+        std::ifstream file(target_file);
+        if (file.is_open())
+        {
+            // 3. 简易 MIME 推演机制 (告诉浏览器该怎么解析这堆二进制)
+            std::string content_type = "text/plain; charset=utf-8"; // 默认纯文本
+            if (target_file.find(".html") != std::string::npos) {
+                content_type = "text/html; charset=utf-8";
+            }
+            else if (target_file.find(".js") != std::string::npos) {
+                content_type = "application/javascript; charset=utf-8";
+            }
+            else if (target_file.find(".css") != std::string::npos) {
+                content_type = "text/css; charset=utf-8";
+            }
+            else if (target_file.find(".png") != std::string::npos) {
+                content_type = "image/png";
+            }
+
+            // 4. 读取文件内容
+            std::stringstream file_buffer;
+            file_buffer << file.rdbuf();
+            std::string file_content = file_buffer.str();
+
+            // 5. 返回文件
+            std::string http_response =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: " + content_type + "\r\n"
+                "Connection: close\r\n\r\n" + file_content;
+
+            conn->Send(http_response);
+            buffer->RetrieveAllAsString(); // 清空buffer
+        }
+        else
+        {
+            LOG_ERROR << "❌ 404 拦截: 试图访问不存在的资源 -> " << target_file;
+            conn->Send("HTTP/1.1 404 Not Found\r\n\r\n 404: 找不到该前端资源！");
+        }
+
+        conn->ForceClose();
+    }
+    else if (strcmp(method, "POST") == 0 && strcmp(uri, "/upload_chunk") == 0)
+    {
+        // 1. 解析Content-Length
+        size_t cl_pos = headers.find("Content-Length: ");
+        if (cl_pos == std::string::npos) return;
+
+        size_t cl_end = headers.find("\r\n", cl_pos);
+        int content_length = std::stoi(headers.substr(cl_pos + 16, cl_end - cl_pos - 16));
+
+        // 2. 判断Body数据是否全部到达网卡
+        size_t total_expected_bytes = header_end_pos + 4 + content_length;
+        if (buffer->ReadableBytes() < total_expected_bytes)
+        {
+            // LOG_INFO << "正在接收大文件碎片... 目前进度: "
+                //<< buffer->ReadableBytes() << " / " << total_expected_bytes;
+            return;
+        }
+
+        // 文件接收完毕
+
+        // 3. 从header中提取键值
+        auto get_header_value = [&](const std::string& key) ->std::string
+            {
+                size_t pos = headers.find(key + ": ");
+                if (pos == std::string::npos) return "";
+                size_t end = headers.find("\r\n", pos);
+                return headers.substr(pos + key.length() + 2, end - pos - key.length() - 2);
+            };
+
+        std::string file_name = get_header_value("X-File-Name");
+        int64_t offset = std::stoll(get_header_value("X-File-Offset"));
+        bool is_eof = (get_header_value("X-File-Eof") == "1");
+
+        // 4. 提取二进制文件
+        std::string full_request = buffer->RetrieveAsString(total_expected_bytes);
+        std::string pure_chunk = full_request.substr(header_end_pos + 4);
+
+        LOG_INFO << "🔪 [透传引擎] 收到碎片 | 文件: " << file_name
+            << " | Offset: " << offset
+            << " | Size: " << pure_chunk.size() << " bytes | EOF: " << is_eof;
+
+        // 5. 转交给文件服务进行处理
+        omnibox::FileChunkUploadRequest rpc_req;
+        rpc_req.set_file_name(file_name);
+        rpc_req.set_offset(offset);
+        rpc_req.set_data(pure_chunk);
+        rpc_req.set_is_eof(is_eof);
+
+        omnibox::FileChunkUploadResponse rpc_resp;
+
+        // rpc请求文件服务
+        omnibox::TransferService_Stub stub(transfer_channel_.get());
+        MyController controller;
+        stub.UploadChunk(&controller, &rpc_req, &rpc_resp, nullptr);
+
+        // 防御 1：RPC 链路断裂？
+        if (controller.Failed())
+        {
+            LOG_ERROR << "[RPC 熔断] 连接 TransferServer 失败: " << controller.ErrorText();
+            // 霸道断开：回发 HTTP 502 Bad Gateway，彻底切断前端的幻想
+            std::string http_error = "HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n";
+            conn->Send(http_error);
+            return;
+        }
+
+        // 防御 2：TransferServer 业务拒绝？
+        if (!rpc_resp.success())
+        {
+            LOG_ERROR << "[业务熔断] TransferServer 拒收碎片: " << rpc_resp.message();
+            // 霸道断开：回发 HTTP 500 Internal Server Error
+            std::string http_error = "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n\r\n";
+            conn->Send(http_error);
+            return;
+        }
+
+        // 5. 瞬间回发 HTTP 200 给浏览器，让它发射下一块！
+        std::string http_response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n";
+        conn->Send(http_response);
+    }
+    else
+    {
+        // 其他未知路由
+        conn->Send("HTTP/1.1 404 Not Found\r\n\r\n 404: 路由未配置");
+    }
 }
 
 // ================== 具体的业务处理 (Handler) ==================

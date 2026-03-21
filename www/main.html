@@ -28,16 +28,31 @@
             font-weight: bold;
             cursor: pointer;
         }
+
+            button:disabled {
+                cursor: not-allowed;
+            }
     </style>
 </head>
 <body>
-    <h1>OmniBox 核心控制台</h1>
+    <h1>📦 OmniBox 核心控制台</h1>
     <div class="box">
-        <h3>传送门：极速文件直传测试</h3>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="myfile" style="color: #fff;"><br><br>
-            <button type="submit">启动传送</button>
-        </form>
+        <h3>工业级传送门：流式切片直传</h3>
+        <input type="file" id="fileInput" style="color: #fff;"><br><br>
+
+        <button id="uploadBtn" onclick="new OmniUploader('fileInput', 'uploadBtn', 'statusText', 'progressBar').start()">🔥 启动文件传送</button>
+
+        <h4 id="statusText" style="color: #ffaa00; margin-top: 20px;">等待命令...</h4>
+        <div style="width: 100%; background: #333; height: 20px; border-radius: 10px; margin-top: 10px; overflow: hidden;">
+            <div id="progressBar" style="width: 0%; background: #00ffcc; height: 100%; transition: width 0.1s linear;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; color: #888; font-family: monospace;">
+            <span id="timeText">⏱️ 已耗时: 0.0s</span>
+            <span id="speedText">🚀 速率: 0.00 MB/s</span>
+        </div>
     </div>
+
+    <script src="/uploader.js"></script>
 </body>
 </html>

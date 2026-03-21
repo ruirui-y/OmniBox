@@ -81,13 +81,34 @@ void MyChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     // 6. 加锁发送，防止多个工作线程同时写 Socket 导致数据错乱
     {
         std::lock_guard<std::mutex> write_lock(write_mutex_);
-        if (send(client_fd_, send_rpc_str.c_str(), send_rpc_str.size(), 0) < 0)
+        const char* data_ptr = send_rpc_str.c_str();
+        size_t total_len = send_rpc_str.size();
+        size_t bytes_sent = 0;
+
+        while (bytes_sent < total_len)
         {
-            if (controller) controller->SetFailed("send error! errno:" + std::to_string(errno));
-            // 发送失败，把登记记录删掉，防止内存泄漏
-            std::lock_guard<std::mutex> lock(map_mutex_);
-            pending_calls_.erase(seq_id);
-            return;
+            ssize_t res = send(client_fd_, data_ptr + bytes_sent, total_len - bytes_sent, 0);
+            if (res < 0)
+            {
+                // 如果是被操作系统的信号中断（EINTR），不要慌，继续发
+                if (errno == EINTR) continue;
+
+                // 真正的网络错误
+                if (controller) controller->SetFailed("send error! errno:" + std::to_string(errno));
+                std::lock_guard<std::mutex> lock(map_mutex_);
+                pending_calls_.erase(seq_id);
+                return;
+            }
+            else if (res == 0)
+            {
+                // 对端关闭了连接
+                if (controller) controller->SetFailed("peer closed connection!");
+                std::lock_guard<std::mutex> lock(map_mutex_);
+                pending_calls_.erase(seq_id);
+                return;
+            }
+
+            bytes_sent += res;
         }
     }
 
@@ -111,15 +132,35 @@ void MyChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     }
 }
 
+static bool RecvAll(int fd, char* buf, size_t size)
+{
+    size_t bytes_read = 0;
+    while (bytes_read < size)
+    {
+        ssize_t res = recv(fd, buf + bytes_read, size - bytes_read, 0);
+        if (res < 0)
+        {
+            if (errno == EINTR) continue; // 信号中断，继续
+            return false; // 真正的网络断开或报错
+        }
+        else if (res == 0)
+        {
+            return false; // 对端优雅关闭了连接
+        }
+        bytes_read += res;
+    }
+    return true;
+}
+
 void MyChannel::ReceiverTask()
 {
     while (is_running_)
     {
         // 1. 读取4字节的包头长度
         uint32_t network_response_size = 0;
-        int n = recv(client_fd_, (char*)&network_response_size, 4, MSG_WAITALL);
-        if (n <= 0)
+        if (!RecvAll(client_fd_, (char*)&network_response_size, 4)) 
         {
+            LOG_ERROR << "ReceiverTask: Connection lost or error while reading header.";
             break;
         }
 
@@ -132,9 +173,9 @@ void MyChannel::ReceiverTask()
 
         // 2. 读取完整的后续数据(包含8字节的SeqID + 纯PB数据)
         std::vector<char> buf(response_size);
-        n = recv(client_fd_, buf.data(), response_size, MSG_WAITALL);
-        if (n <= 0)
+        if (!RecvAll(client_fd_, buf.data(), response_size))
         {
+            LOG_ERROR << "ReceiverTask: Connection lost while reading body.";
             break;
         }
 
@@ -151,6 +192,8 @@ void MyChannel::ReceiverTask()
         // be64toh 意思是：Big Endian 64 to Host
         uint64_t seq_id = be64toh(network_seq_id);
 
+        LOG_INFO << "seq_id = " << seq_id;
+
         // 4. 拆出纯pb响应数据
         std::string pb_data(buf.data() + 8, response_size - 8);
 
@@ -164,6 +207,11 @@ void MyChannel::ReceiverTask()
                 it->second->set_value(pb_data);
                 // 唤醒后，注销这个单号
                 pending_calls_.erase(it);
+                LOG_INFO << "Wakeup Success " << seq_id;
+            }
+            else
+            {
+                LOG_ERROR << "Wakeup Falield " << seq_id;
             }
         }
     }

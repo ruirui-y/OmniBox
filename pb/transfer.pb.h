@@ -195,6 +195,7 @@ class FileChunkUploadRequest final :
     kFileNameFieldNumber = 1,
     kDataFieldNumber = 3,
     kOffsetFieldNumber = 2,
+    kTotalSizeFieldNumber = 5,
     kIsEofFieldNumber = 4,
   };
   // string file_name = 1;
@@ -234,6 +235,15 @@ class FileChunkUploadRequest final :
   void _internal_set_offset(int64_t value);
   public:
 
+  // int64 total_size = 5;
+  void clear_total_size();
+  int64_t total_size() const;
+  void set_total_size(int64_t value);
+  private:
+  int64_t _internal_total_size() const;
+  void _internal_set_total_size(int64_t value);
+  public:
+
   // bool is_eof = 4;
   void clear_is_eof();
   bool is_eof() const;
@@ -253,6 +263,7 @@ class FileChunkUploadRequest final :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr file_name_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
   int64_t offset_;
+  int64_t total_size_;
   bool is_eof_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_transfer_2eproto;
@@ -640,6 +651,26 @@ inline void FileChunkUploadRequest::_internal_set_is_eof(bool value) {
 inline void FileChunkUploadRequest::set_is_eof(bool value) {
   _internal_set_is_eof(value);
   // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.is_eof)
+}
+
+// int64 total_size = 5;
+inline void FileChunkUploadRequest::clear_total_size() {
+  total_size_ = int64_t{0};
+}
+inline int64_t FileChunkUploadRequest::_internal_total_size() const {
+  return total_size_;
+}
+inline int64_t FileChunkUploadRequest::total_size() const {
+  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.total_size)
+  return _internal_total_size();
+}
+inline void FileChunkUploadRequest::_internal_set_total_size(int64_t value) {
+  
+  total_size_ = value;
+}
+inline void FileChunkUploadRequest::set_total_size(int64_t value) {
+  _internal_set_total_size(value);
+  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.total_size)
 }
 
 // -------------------------------------------------------------------

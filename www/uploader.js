@@ -17,6 +17,8 @@ class OmniUploader {
 
         // 性能侦测变量
         this.startTime = 0;
+
+        this.uploadedBytes = 0; // 👈 核心：新增累加器
     }
 
     async start() {
@@ -26,6 +28,7 @@ class OmniUploader {
         const file = this.fileInput.files[0];
         this.uploadBtn.disabled = true;
         this.uploadBtn.style.background = "#555";
+        this.uploadedBytes = 0; // 👈 每次点击上传，账本清零！
 
         this.startTime = Date.now();
         this.timeText.innerText = "⏱️ 已耗时: 0.0s";
@@ -54,8 +57,11 @@ class OmniUploader {
 
             // 将发包动作封装成 Promise
             const p = this.shootChunk(file.name, currentOffset, isEof, chunk).then(() => {
-                // 收到 200 OK 后，更新进度条，并从活跃池中移除自己
-                this.updateProgress(currentOffset, chunk.size, file.size);
+                // 收到 200 OK 后，账本累加这块肉丁的真实重量！不管它是第几块！
+                this.uploadedBytes += chunk.size;
+
+                // 刷新 UI 时，根本不需要传 offset 了，只需要传总大小
+                this.updateProgress(file.size);
                 activePromises.splice(activePromises.indexOf(p), 1);
             });
 
@@ -93,25 +99,25 @@ class OmniUploader {
     }
 
     // 核心 UI 刷新辅助方法 (包含速率计算)
-    updateProgress(offset, chunkSize, totalSize) {
-        // 1. 进度条计算
-        const currentMB = (offset / 1024 / 1024).toFixed(2);
+    updateProgress(totalSize) {
+        // 1. 进度条计算（完全依赖累加器，单调递增，绝不倒流！）
+        const currentMB = (this.uploadedBytes / 1024 / 1024).toFixed(2);
         const totalMB = (totalSize / 1024 / 1024).toFixed(2);
-        const percent = Math.min(100, ((offset + chunkSize) / totalSize) * 100);
+        const percent = Math.min(100, (this.uploadedBytes / totalSize) * 100);
 
         this.statusText.innerText = `正在穿透... ${currentMB} MB / ${totalMB} MB (${percent.toFixed(1)}%)`;
         this.statusText.style.color = "#ffaa00";
         this.progressBar.style.width = percent + '%';
 
-        // 2. 性能侦测计算 (耗时与速度)
+        // 2. 性能侦测计算
         const now = Date.now();
-        const elapsedSeconds = (now - this.startTime) / 1000; // 换算成秒
+        const elapsedSeconds = (now - this.startTime) / 1000;
 
         if (elapsedSeconds > 0.1) {
             this.timeText.innerText = `⏱️ 已耗时: ${elapsedSeconds.toFixed(1)}s`;
 
-            // 速度 = 已发送的 MB 数 / 已耗费的秒数
-            const uploadedMB = (offset + chunkSize) / 1024 / 1024;
+            // 速度 = 真实的累加 MB 数 / 已耗费的秒数
+            const uploadedMB = this.uploadedBytes / 1024 / 1024;
             const speedMBps = uploadedMB / elapsedSeconds;
             this.speedText.innerText = `🚀 速率: ${speedMBps.toFixed(2)} MB/s`;
         }
@@ -121,11 +127,20 @@ class OmniUploader {
         this.statusText.innerText = "✅ 传送大满贯！碎片已在服务器完成拼装。";
         this.statusText.style.color = "#00ffcc";
 
-        // 最终耗时定格
+        // 👑 1. 强行把进度条焊死在 100%！消除任何并发浮点数带来的微小缝隙
+        this.progressBar.style.width = '100%';
+
+        // 👑 2. 最终耗时定格
         const finalSeconds = (Date.now() - this.startTime) / 1000;
         this.timeText.innerText = `⏱️ 总耗时: ${finalSeconds.toFixed(1)}s`;
 
-        // 恢复按钮状态
+        // 👑 3. 最终平均速率定格 (用真实落地的总字节数 / 真实总耗时)
+        if (finalSeconds > 0) {
+            const finalSpeedMBps = (this.uploadedBytes / 1024 / 1024) / finalSeconds;
+            this.speedText.innerText = `🚀 平均速率: ${finalSpeedMBps.toFixed(2)} MB/s`;
+        }
+
+        // 4. 恢复按钮状态，准备下一次传送
         this.uploadBtn.disabled = false;
         this.uploadBtn.style.background = "#00ffcc";
         this.uploadBtn.innerText = "🔥 启动量子传送";

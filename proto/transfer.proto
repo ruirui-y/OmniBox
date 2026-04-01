@@ -12,6 +12,7 @@ message FileChunkUploadRequest
 	int64 offset = 2;												// 这个碎片在整个文件里的偏移量 (比如第 0 字节，第 65536 字节)
 	bytes data = 3;													// 真正的碎片实体数据 (建议每次最大传 64KB)
 	bool is_eof = 4;												// End Of File: 是不是最后一块碎片？
+	int64 total_size = 5;											// 整个文件的大小
 }
 
 // 2. 碎片接收响应

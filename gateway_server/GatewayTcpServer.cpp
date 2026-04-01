@@ -11,6 +11,7 @@
 #include "RedisClient.h"   
 #include "transfer.pb.h"
 #include "MyController.h"
+#include "HttpRpcClosure.h"
 using namespace std::placeholders;
 
 GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint16_t port)
@@ -229,36 +230,19 @@ void GatewayTcpServer::HandleHttpRequest(const std::shared_ptr<TcpConnection>& c
         rpc_req.set_data(pure_chunk);
         rpc_req.set_is_eof(is_eof);
 
-        omnibox::FileChunkUploadResponse rpc_resp;
-
         // rpc请求文件服务
+        auto rpc_resp = std::make_shared<omnibox::FileChunkUploadResponse>();
+        auto controller = std::make_shared<MyController>();
+
+        std::function<void(const TcpConnectionPtr&, const std::shared_ptr<omnibox::FileChunkUploadResponse>&)> success_callback = nullptr;
+        success_callback = [](const TcpConnectionPtr& conn, const std::shared_ptr<omnibox::FileChunkUploadResponse>& resp)
+            {
+                LOG_WARN << resp->message() << " " << resp->next_offset();
+            };
+        auto done = new HttpRpcClosure<omnibox::FileChunkUploadResponse>(conn, controller, rpc_resp, nullptr);
+
         omnibox::TransferService_Stub stub(transfer_channel_.get());
-        MyController controller;
-        stub.UploadChunk(&controller, &rpc_req, &rpc_resp, nullptr);
-
-        // 防御 1：RPC 链路断裂？
-        if (controller.Failed())
-        {
-            LOG_ERROR << "[RPC 熔断] 连接 TransferServer 失败: " << controller.ErrorText();
-            // 霸道断开：回发 HTTP 502 Bad Gateway，彻底切断前端的幻想
-            std::string http_error = "HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n";
-            conn->Send(http_error);
-            return;
-        }
-
-        // 防御 2：TransferServer 业务拒绝？
-        if (!rpc_resp.success())
-        {
-            LOG_ERROR << "[业务熔断] TransferServer 拒收碎片: " << rpc_resp.message();
-            // 霸道断开：回发 HTTP 500 Internal Server Error
-            std::string http_error = "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n\r\n";
-            conn->Send(http_error);
-            return;
-        }
-
-        // 5. 瞬间回发 HTTP 200 给浏览器，让它发射下一块！
-        std::string http_response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n";
-        conn->Send(http_response);
+        stub.UploadChunk(controller.get(), &rpc_req, rpc_resp.get(), done);
     }
     else
     {

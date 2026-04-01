@@ -11,28 +11,130 @@
 #include "rpcheader.pb.h"
 #include "ConnectionPool.h"
 
+using namespace std::placeholders;
+
 MyChannel::MyChannel(const std::string& ip, int port)
-    : ip_(ip),
-    port_(port),
-    is_running_(true)
+    : ip_(ip), port_(port), loop_(nullptr)
 {
-    client_fd_ = ConnectionPool::GetInstance().GetConnection(ip_, port_);
-    recv_thread_ = std::thread(&MyChannel::ReceiverTask, this);
+    // 1. 准备一个信使，用来跨线程传递 EventLoop 的指针
+    std::promise<EventLoop*> prom;
+    std::future<EventLoop*> fut = prom.get_future();
+
+    // 2. 启动后台大管家线程
+    loop_thread_ = std::thread([&prom]() {
+        // 核心：EventLoop 真正诞生在后台线程！它完全属于这个线程！
+        EventLoop loop;
+
+        // 把生出来的 loop 指针通过信使递给外面的主线程
+        prom.set_value(&loop);
+
+        // 死循环阻塞在这里，直到被人调用 Quit()
+        loop.Loop();
+        });
+
+    // 3. 主线程阻塞在这里等待，直到收到后台线程递出来的指针
+    loop_ = fut.get();
+
+    // 4. 现在 loop_ 已经是绝对安全的了，用它来创建非阻塞客户端
+    client_.reset(new TcpClient(loop_, ip_, port_, "RpcClient"));
+
+    // 5. 绑定回调
+    using std::placeholders::_1;
+    using std::placeholders::_2;
+    client_->SetConnectionCallback(std::bind(&MyChannel::OnConnection, this, _1));
+    client_->SetMessageCallback(std::bind(&MyChannel::OnMessage, this, _1, _2));
+
+    // 6. 发起异步连接 (Connect 内部极其安全，它会通过 RunInLoop 投递给后台线程去执行底层 connect)
+    client_->Connect();
 }
 
 MyChannel::~MyChannel()
 {
-    is_running_ = false;
-    
-    // 如果MyChannel是成员变量就是长连接，如果是局部变量就是短连接
-    if (client_fd_)
-    {
-        shutdown(client_fd_, SHUT_RDWR);
+    client_->Disconnect();
+
+    // 叫醒后台大管家下班
+    if (loop_) {
+        loop_->Quit();
     }
 
-    if (recv_thread_.joinable())
+    // 等待后台线程安全结束
+    if (loop_thread_.joinable()) {
+        loop_thread_.join();
+    }
+}
+
+void MyChannel::OnConnection(const TcpConnectionPtr& conn)
+{
+    std::lock_guard<std::mutex> lock(conn_mutex_);
+    if (conn->Connected()) 
     {
-        recv_thread_.join();
+        conn_ = conn;
+        LOG_INFO << "[MyChannel] Successfully connected to RPC Server " << ip_ << ":" << port_;
+    }
+    else
+    {
+        conn_.reset();
+        LOG_INFO << "[MyChannel] Disconnected from RPC Server " << ip_ << ":" << port_;
+    }
+}
+
+void MyChannel::OnMessage(const TcpConnectionPtr& conn, Buffer* buffer)
+{
+    // TCP 是字节流，只要缓冲区里数据大于等于包头长度 (4字节)，我们就尝试拆包
+    while (buffer->ReadableBytes() >= 4)
+    {
+        // 1. 偷看前 4 个字节 (peek 不会清除数据)
+        uint32_t net_len = 0;
+        memcpy(&net_len, buffer->peek(), 4);
+        uint32_t total_len = ntohl(net_len);
+
+        // 2. 关键防御：如果连一个完整包的数据都还没到齐，直接 break！
+        // 等底层的 epoll 下次收齐了再触发这个函数，线程绝对不在这里死等！
+        if (buffer->ReadableBytes() < total_len + 4)
+        {
+            break;
+        }
+
+        // 3. 既然到齐了，就正式把包取出来
+        buffer->retrieve(4); // 扔掉长度字段
+
+        // 防御异常脏数据
+        if (total_len < 8) {
+            buffer->retrieve(total_len);
+            continue;
+        }
+
+        // 4. 拆出单号 seq_id
+        uint64_t network_seq_id = 0;
+        memcpy(&network_seq_id, buffer->peek(), 8);
+        uint64_t seq_id = be64toh(network_seq_id);
+        buffer->retrieve(8); // 扔掉单号字段
+
+        // 5. 拿出纯 Protobuf 数据
+        std::string pb_data = buffer->RetrieveAsString(total_len - 8);
+        
+        // 6. 查找对应的回调上下文
+        CallContext ctx;
+        {
+            std::lock_guard<std::mutex> lock(map_mutex_);
+            auto it = pending_calls_.find(seq_id);
+            if (it != pending_calls_.end()) 
+            {
+                ctx = it->second;
+                pending_calls_.erase(it);
+            }
+        }
+
+        if (ctx.response && ctx.done) 
+        {
+            ctx.response->ParseFromString(pb_data);
+
+            // 执行业务层传进来的回调！
+            // (注意：这里默认是在 MyChannel 的后台 loop 线程里执行的，
+            // 如果你想严格按照你说的“推送到发起请求的线程”，
+            // 业务层在构造 done 的时候，自己用 runInLoop 包装一下即可！)
+            ctx.done->Run();
+        }
     }
 }
 
@@ -73,146 +175,28 @@ void MyChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     std::future<std::string> fut = prom->get_future();
 
     {
-        // 去总台登记：单号 seq_id 对应的凭证是 prom
+        // 去总台登记：单号 seq_id 对应的凭证是 发送完成的回调
         std::lock_guard<std::mutex> lock(map_mutex_);
-        pending_calls_[seq_id] = prom;
+        pending_calls_[seq_id] = { response, done };
     }
 
     // 6. 加锁发送，防止多个工作线程同时写 Socket 导致数据错乱
+    TcpConnectionPtr active_conn;
     {
-        std::lock_guard<std::mutex> write_lock(write_mutex_);
-        const char* data_ptr = send_rpc_str.c_str();
-        size_t total_len = send_rpc_str.size();
-        size_t bytes_sent = 0;
-
-        while (bytes_sent < total_len)
-        {
-            ssize_t res = send(client_fd_, data_ptr + bytes_sent, total_len - bytes_sent, 0);
-            if (res < 0)
-            {
-                // 如果是被操作系统的信号中断（EINTR），不要慌，继续发
-                if (errno == EINTR) continue;
-
-                // 真正的网络错误
-                if (controller) controller->SetFailed("send error! errno:" + std::to_string(errno));
-                std::lock_guard<std::mutex> lock(map_mutex_);
-                pending_calls_.erase(seq_id);
-                return;
-            }
-            else if (res == 0)
-            {
-                // 对端关闭了连接
-                if (controller) controller->SetFailed("peer closed connection!");
-                std::lock_guard<std::mutex> lock(map_mutex_);
-                pending_calls_.erase(seq_id);
-                return;
-            }
-
-            bytes_sent += res;
-        }
+        std::lock_guard<std::mutex> lock(conn_mutex_);
+        active_conn = conn_;
     }
 
-    // 7. 终极奥义：带超时的沉睡！不耗费一点 CPU 资源
-    // 等待后台 ReceiverTask 来调用 set_value 唤醒它
-    if (fut.wait_for(std::chrono::seconds(5)) == std::future_status::timeout)
+    if (active_conn && active_conn->Connected())
     {
-        if (controller) controller->SetFailed("RPC response timeout!");
+        // 这一句瞬间返回！如果网卡满了，Muduo 会自动塞进它的内存 Buffer 并交给 epoll 排队发送
+        active_conn->Send(send_rpc_str);
+    }
+    else
+    {
+        if (controller) controller->SetFailed("Connection is down!");
         std::lock_guard<std::mutex> lock(map_mutex_);
-        pending_calls_.erase(seq_id);                                                                   // 超时了，撤销登记
+        pending_calls_.erase(seq_id);
         return;
-    }
-
-    // 8. 醒来！拿取后台线程塞进来的纯正 pb 数据
-    std::string response_data = fut.get();
-
-    // 9. 反序列化
-    if (!response->ParseFromString(response_data))
-    {
-        if (controller) controller->SetFailed("parse response error!");
-    }
-}
-
-static bool RecvAll(int fd, char* buf, size_t size)
-{
-    size_t bytes_read = 0;
-    while (bytes_read < size)
-    {
-        ssize_t res = recv(fd, buf + bytes_read, size - bytes_read, 0);
-        if (res < 0)
-        {
-            if (errno == EINTR) continue; // 信号中断，继续
-            return false; // 真正的网络断开或报错
-        }
-        else if (res == 0)
-        {
-            return false; // 对端优雅关闭了连接
-        }
-        bytes_read += res;
-    }
-    return true;
-}
-
-void MyChannel::ReceiverTask()
-{
-    while (is_running_)
-    {
-        // 1. 读取4字节的包头长度
-        uint32_t network_response_size = 0;
-        if (!RecvAll(client_fd_, (char*)&network_response_size, 4)) 
-        {
-            LOG_ERROR << "ReceiverTask: Connection lost or error while reading header.";
-            break;
-        }
-
-        // 转化为主机字节序
-        uint32_t response_size = ntohl(network_response_size);
-        if (response_size > 10 * 1024 * 1024)
-        {
-            continue;
-        }
-
-        // 2. 读取完整的后续数据(包含8字节的SeqID + 纯PB数据)
-        std::vector<char> buf(response_size);
-        if (!RecvAll(client_fd_, buf.data(), response_size))
-        {
-            LOG_ERROR << "ReceiverTask: Connection lost while reading body.";
-            break;
-        }
-
-        if (response_size < 8)
-        {
-            continue;
-        }
-
-        // 3. 拆出单号
-        uint64_t network_seq_id = 0;
-        memcpy(&network_seq_id, buf.data(), 8);
-
-        // 将 64 位网络字节序（大端序, Big Endian）转回本机的主机字节序（Host）
-        // be64toh 意思是：Big Endian 64 to Host
-        uint64_t seq_id = be64toh(network_seq_id);
-
-        LOG_INFO << "seq_id = " << seq_id;
-
-        // 4. 拆出纯pb响应数据
-        std::string pb_data(buf.data() + 8, response_size - 8);
-
-        // 5. 查表唤醒等待的线程
-        {
-            std::lock_guard<std::mutex> lock(map_mutex_);
-            auto it = pending_calls_.find(seq_id);
-            if (it != pending_calls_.end())
-            {
-                // 把数据塞进 promise，这会瞬间唤醒 CallMethod 里正在 wait 的线程
-                it->second->set_value(pb_data);
-                // 唤醒后，注销这个单号
-                pending_calls_.erase(it);
-                LOG_INFO << "Wakeup Success " << seq_id;
-            }
-            else
-            {
-                LOG_ERROR << "Wakeup Falield " << seq_id;
-            }
-        }
     }
 }

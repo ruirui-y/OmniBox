@@ -22,6 +22,7 @@ constexpr FileChunkUploadRequest::FileChunkUploadRequest(
   : file_name_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
   , data_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
   , offset_(int64_t{0})
+  , total_size_(int64_t{0})
   , is_eof_(false){}
 struct FileChunkUploadRequestDefaultTypeInternal {
   constexpr FileChunkUploadRequestDefaultTypeInternal()
@@ -62,6 +63,7 @@ const uint32_t TableStruct_transfer_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   PROTOBUF_FIELD_OFFSET(::omnibox::FileChunkUploadRequest, offset_),
   PROTOBUF_FIELD_OFFSET(::omnibox::FileChunkUploadRequest, data_),
   PROTOBUF_FIELD_OFFSET(::omnibox::FileChunkUploadRequest, is_eof_),
+  PROTOBUF_FIELD_OFFSET(::omnibox::FileChunkUploadRequest, total_size_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::omnibox::FileChunkUploadResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -74,7 +76,7 @@ const uint32_t TableStruct_transfer_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::omnibox::FileChunkUploadRequest)},
-  { 10, -1, -1, sizeof(::omnibox::FileChunkUploadResponse)},
+  { 11, -1, -1, sizeof(::omnibox::FileChunkUploadResponse)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -83,18 +85,19 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 };
 
 const char descriptor_table_protodef_transfer_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\016transfer.proto\022\007omnibox\"Y\n\026FileChunkUp"
+  "\n\016transfer.proto\022\007omnibox\"m\n\026FileChunkUp"
   "loadRequest\022\021\n\tfile_name\030\001 \001(\t\022\016\n\006offset"
-  "\030\002 \001(\003\022\014\n\004data\030\003 \001(\014\022\016\n\006is_eof\030\004 \001(\010\"P\n\027"
-  "FileChunkUploadResponse\022\017\n\007success\030\001 \001(\010"
-  "\022\017\n\007message\030\002 \001(\t\022\023\n\013next_offset\030\003 \001(\0032c"
-  "\n\017TransferService\022P\n\013UploadChunk\022\037.omnib"
-  "ox.FileChunkUploadRequest\032 .omnibox.File"
-  "ChunkUploadResponseB\003\200\001\001b\006proto3"
+  "\030\002 \001(\003\022\014\n\004data\030\003 \001(\014\022\016\n\006is_eof\030\004 \001(\010\022\022\n\n"
+  "total_size\030\005 \001(\003\"P\n\027FileChunkUploadRespo"
+  "nse\022\017\n\007success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\022\023\n"
+  "\013next_offset\030\003 \001(\0032c\n\017TransferService\022P\n"
+  "\013UploadChunk\022\037.omnibox.FileChunkUploadRe"
+  "quest\032 .omnibox.FileChunkUploadResponseB"
+  "\003\200\001\001b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_transfer_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_transfer_2eproto = {
-  false, false, 312, descriptor_table_protodef_transfer_2eproto, "transfer.proto", 
+  false, false, 332, descriptor_table_protodef_transfer_2eproto, "transfer.proto", 
   &descriptor_table_transfer_2eproto_once, nullptr, 0, 2,
   schemas, file_default_instances, TableStruct_transfer_2eproto::offsets,
   file_level_metadata_transfer_2eproto, file_level_enum_descriptors_transfer_2eproto, file_level_service_descriptors_transfer_2eproto,
@@ -240,6 +243,14 @@ const char* FileChunkUploadRequest::_InternalParse(const char* ptr, ::PROTOBUF_N
         } else
           goto handle_unusual;
         continue;
+      // int64 total_size = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          total_size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -297,6 +308,12 @@ uint8_t* FileChunkUploadRequest::_InternalSerialize(
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(4, this->_internal_is_eof(), target);
   }
 
+  // int64 total_size = 5;
+  if (this->_internal_total_size() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt64ToArray(5, this->_internal_total_size(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -330,6 +347,11 @@ size_t FileChunkUploadRequest::ByteSizeLong() const {
   // int64 offset = 2;
   if (this->_internal_offset() != 0) {
     total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int64SizePlusOne(this->_internal_offset());
+  }
+
+  // int64 total_size = 5;
+  if (this->_internal_total_size() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int64SizePlusOne(this->_internal_total_size());
   }
 
   // bool is_eof = 4;
@@ -367,6 +389,9 @@ void FileChunkUploadRequest::MergeFrom(const FileChunkUploadRequest& from) {
   }
   if (from._internal_offset() != 0) {
     _internal_set_offset(from._internal_offset());
+  }
+  if (from._internal_total_size() != 0) {
+    _internal_set_total_size(from._internal_total_size());
   }
   if (from._internal_is_eof() != 0) {
     _internal_set_is_eof(from._internal_is_eof());

@@ -8,6 +8,7 @@
 #include <atomic>
 #include <fstream>
 #include <memory>
+#include <mymuduo/base/ThreadPool.h>
 
 // 为每一个正在上传的文件，维护一个极其轻量的上下文
 struct FileTransferContext
@@ -20,6 +21,8 @@ struct FileTransferContext
 class TransferServiceImpl : public omnibox::TransferService
 {
 public:
+    TransferServiceImpl();
+
 	// 上传碎片
     void UploadChunk(::google::protobuf::RpcController* controller,
         const ::omnibox::FileChunkUploadRequest* request,
@@ -33,6 +36,8 @@ private:
 private:
     std::mutex map_mutex_;
     std::unordered_map<std::string, std::shared_ptr<FileTransferContext>> file_contexts_;
+
+    ThreadPool disk_io_pool_;                                           // 写磁盘线程池
 };
 
 #endif

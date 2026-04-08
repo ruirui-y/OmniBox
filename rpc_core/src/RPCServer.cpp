@@ -81,15 +81,16 @@ void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* bu
         uint64_t seq_id = rpcHeader.seq_id();
 
         google::protobuf::Closure* done = new RPCClosure(
-            [this, conn, response, seq_id]() {
+            [this, conn, request, response, seq_id]() 
+            {
                 this->SendRpcResponse(conn, response, seq_id);
+                
+                // 释放堆空间
+                if (request) delete request;
+                if (response) delete response;
             }
         );
         service->CallMethod(method, nullptr, request, response, done);
-
-        // 释放堆空间
-        if (request) delete request;
-        if (response) delete response;
     }
 }
 

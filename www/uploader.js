@@ -56,7 +56,7 @@ class OmniUploader {
             offset += this.CHUNK_SIZE; // 游标继续无情推进
 
             // 将发包动作封装成 Promise
-            const p = this.shootChunk(file.name, currentOffset, isEof, chunk).then(() => {
+            const p = this.shootChunk(file.name, currentOffset, isEof, chunk, file.size).then(() => {
                 // 收到 200 OK 后，账本累加这块肉丁的真实重量！不管它是第几块！
                 this.uploadedBytes += chunk.size;
 
@@ -79,12 +79,13 @@ class OmniUploader {
     }
 
     // 独立的发包函数 (剥离了进度刷新和重试逻辑，变得极其纯粹)
-    async shootChunk(fileName, offset, isEof, chunkData) {
+    async shootChunk(fileName, offset, isEof, chunkData, fileSize) {
         const headers = {
             'Content-Type': 'application/octet-stream',
             'X-File-Name': encodeURIComponent(fileName),
             'X-File-Offset': offset.toString(),
-            'X-File-Eof': isEof ? '1' : '0'
+            'X-File-Eof': isEof ? '1' : '0',
+            'X-File-Size': fileSize.toString()
         };
 
         const response = await fetch('/upload_chunk', {

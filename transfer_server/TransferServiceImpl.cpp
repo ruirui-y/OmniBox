@@ -30,7 +30,6 @@ void TransferServiceImpl::UploadChunk(::google::protobuf::RpcController* control
         {
             // 1. 获取文件的专属上下文
             auto ctx = GetOrCreateContext(file_name);
-
             // 2. 独占这个文件
             {
                 // 🚨 架构师护盾：现在有 4 个后台线程，这把锁极其关键，防并发踩踏全靠它！

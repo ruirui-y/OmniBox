@@ -214,6 +214,7 @@ void GatewayTcpServer::HandleHttpRequest(const std::shared_ptr<TcpConnection>& c
         std::string file_name = get_header_value("X-File-Name");
         int64_t offset = std::stoll(get_header_value("X-File-Offset"));
         bool is_eof = (get_header_value("X-File-Eof") == "1");
+        int64_t file_size = std::stoll(get_header_value("X-File-Size"));
 
         // 4. 提取二进制文件
         std::string full_request = buffer->RetrieveAsString(total_expected_bytes);
@@ -229,6 +230,7 @@ void GatewayTcpServer::HandleHttpRequest(const std::shared_ptr<TcpConnection>& c
         rpc_req.set_offset(offset);
         rpc_req.set_data(pure_chunk);
         rpc_req.set_is_eof(is_eof);
+        rpc_req.set_total_size(file_size);
 
         // rpc请求文件服务
         auto rpc_resp = std::make_shared<omnibox::FileChunkUploadResponse>();

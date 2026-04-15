@@ -66,9 +66,13 @@ void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* bu
             return;
         }
 
+        // 根据服务名获取相关服务
         google::protobuf::Service* service = it->second;
+
+        // 一个服务里不止一个rpc方法；根据方法索引获取对应的方法描述
         const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->method(rpcHeader.method_index());
 
+        // 根据方法描述获取请求，进而并反序列化
         google::protobuf::Message* request = service->GetRequestPrototype(method).New();
         if (!request->ParseFromString(args_str)) 
         {
@@ -76,10 +80,13 @@ void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* bu
             delete request;                                                                         // 防止解析失败时内存泄漏
             return;
         }
+
+        // 创建对应rpc方法的响应
         google::protobuf::Message* response = service->GetResponsePrototype(method).New();
 
         uint64_t seq_id = rpcHeader.seq_id();
 
+        // 设置rpc方法完成后的回调函数, 用来区分是异步操作还是同步
         google::protobuf::Closure* done = new RPCClosure(
             [this, conn, request, response, seq_id]() 
             {
@@ -90,6 +97,8 @@ void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* bu
                 if (response) delete response;
             }
         );
+
+        // 调用rpc方法
         service->CallMethod(method, nullptr, request, response, done);
     }
 }

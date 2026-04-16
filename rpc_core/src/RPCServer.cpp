@@ -5,7 +5,7 @@
 #include <endian.h>
 
 RPCServer::RPCServer(EventLoop* loop, std::string ip, uint16_t port)
-    :server_(loop_, ip, port, 100), loop_(loop), ip_(ip), port_(port)
+    :server_(loop, ip, port, 100), loop_(loop), ip_(ip), port_(port)
 {
 }
 

@@ -192,13 +192,30 @@ class FileChunkUploadRequest final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kFileNameFieldNumber = 1,
-    kDataFieldNumber = 3,
-    kOffsetFieldNumber = 2,
-    kTotalSizeFieldNumber = 5,
-    kIsEofFieldNumber = 4,
+    kFileHashFieldNumber = 1,
+    kFileNameFieldNumber = 2,
+    kBlockHashFieldNumber = 4,
+    kDataFieldNumber = 6,
+    kTotalSizeFieldNumber = 3,
+    kChunkIndexFieldNumber = 5,
+    kIsEofFieldNumber = 8,
+    kOffsetFieldNumber = 7,
   };
-  // string file_name = 1;
+  // string file_hash = 1;
+  void clear_file_hash();
+  const std::string& file_hash() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_file_hash(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_file_hash();
+  PROTOBUF_NODISCARD std::string* release_file_hash();
+  void set_allocated_file_hash(std::string* file_hash);
+  private:
+  const std::string& _internal_file_hash() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_file_hash(const std::string& value);
+  std::string* _internal_mutable_file_hash();
+  public:
+
+  // string file_name = 2;
   void clear_file_name();
   const std::string& file_name() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -212,7 +229,21 @@ class FileChunkUploadRequest final :
   std::string* _internal_mutable_file_name();
   public:
 
-  // bytes data = 3;
+  // string block_hash = 4;
+  void clear_block_hash();
+  const std::string& block_hash() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_block_hash(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_block_hash();
+  PROTOBUF_NODISCARD std::string* release_block_hash();
+  void set_allocated_block_hash(std::string* block_hash);
+  private:
+  const std::string& _internal_block_hash() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_block_hash(const std::string& value);
+  std::string* _internal_mutable_block_hash();
+  public:
+
+  // bytes data = 6;
   void clear_data();
   const std::string& data() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -226,16 +257,7 @@ class FileChunkUploadRequest final :
   std::string* _internal_mutable_data();
   public:
 
-  // int64 offset = 2;
-  void clear_offset();
-  int64_t offset() const;
-  void set_offset(int64_t value);
-  private:
-  int64_t _internal_offset() const;
-  void _internal_set_offset(int64_t value);
-  public:
-
-  // int64 total_size = 5;
+  // int64 total_size = 3;
   void clear_total_size();
   int64_t total_size() const;
   void set_total_size(int64_t value);
@@ -244,13 +266,31 @@ class FileChunkUploadRequest final :
   void _internal_set_total_size(int64_t value);
   public:
 
-  // bool is_eof = 4;
+  // int32 chunk_index = 5;
+  void clear_chunk_index();
+  int32_t chunk_index() const;
+  void set_chunk_index(int32_t value);
+  private:
+  int32_t _internal_chunk_index() const;
+  void _internal_set_chunk_index(int32_t value);
+  public:
+
+  // bool is_eof = 8;
   void clear_is_eof();
   bool is_eof() const;
   void set_is_eof(bool value);
   private:
   bool _internal_is_eof() const;
   void _internal_set_is_eof(bool value);
+  public:
+
+  // int64 offset = 7;
+  void clear_offset();
+  int64_t offset() const;
+  void set_offset(int64_t value);
+  private:
+  int64_t _internal_offset() const;
+  void _internal_set_offset(int64_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:omnibox.FileChunkUploadRequest)
@@ -260,11 +300,14 @@ class FileChunkUploadRequest final :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr file_hash_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr file_name_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_hash_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
-  int64_t offset_;
   int64_t total_size_;
+  int32_t chunk_index_;
   bool is_eof_;
+  int64_t offset_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_transfer_2eproto;
 };
@@ -393,8 +436,9 @@ class FileChunkUploadResponse final :
 
   enum : int {
     kMessageFieldNumber = 2,
-    kNextOffsetFieldNumber = 3,
+    kNextOffsetFieldNumber = 4,
     kSuccessFieldNumber = 1,
+    kIsDuplicateFieldNumber = 3,
   };
   // string message = 2;
   void clear_message();
@@ -410,7 +454,7 @@ class FileChunkUploadResponse final :
   std::string* _internal_mutable_message();
   public:
 
-  // int64 next_offset = 3;
+  // int64 next_offset = 4;
   void clear_next_offset();
   int64_t next_offset() const;
   void set_next_offset(int64_t value);
@@ -428,6 +472,15 @@ class FileChunkUploadResponse final :
   void _internal_set_success(bool value);
   public:
 
+  // bool is_duplicate = 3;
+  void clear_is_duplicate();
+  bool is_duplicate() const;
+  void set_is_duplicate(bool value);
+  private:
+  bool _internal_is_duplicate() const;
+  void _internal_set_is_duplicate(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:omnibox.FileChunkUploadResponse)
  private:
   class _Internal;
@@ -438,6 +491,7 @@ class FileChunkUploadResponse final :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
   int64_t next_offset_;
   bool success_;
+  bool is_duplicate_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_transfer_2eproto;
 };
@@ -511,7 +565,58 @@ class TransferService_Stub : public TransferService {
 #endif  // __GNUC__
 // FileChunkUploadRequest
 
-// string file_name = 1;
+// string file_hash = 1;
+inline void FileChunkUploadRequest::clear_file_hash() {
+  file_hash_.ClearToEmpty();
+}
+inline const std::string& FileChunkUploadRequest::file_hash() const {
+  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.file_hash)
+  return _internal_file_hash();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileChunkUploadRequest::set_file_hash(ArgT0&& arg0, ArgT... args) {
+ 
+ file_hash_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.file_hash)
+}
+inline std::string* FileChunkUploadRequest::mutable_file_hash() {
+  std::string* _s = _internal_mutable_file_hash();
+  // @@protoc_insertion_point(field_mutable:omnibox.FileChunkUploadRequest.file_hash)
+  return _s;
+}
+inline const std::string& FileChunkUploadRequest::_internal_file_hash() const {
+  return file_hash_.Get();
+}
+inline void FileChunkUploadRequest::_internal_set_file_hash(const std::string& value) {
+  
+  file_hash_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
+}
+inline std::string* FileChunkUploadRequest::_internal_mutable_file_hash() {
+  
+  return file_hash_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
+}
+inline std::string* FileChunkUploadRequest::release_file_hash() {
+  // @@protoc_insertion_point(field_release:omnibox.FileChunkUploadRequest.file_hash)
+  return file_hash_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+}
+inline void FileChunkUploadRequest::set_allocated_file_hash(std::string* file_hash) {
+  if (file_hash != nullptr) {
+    
+  } else {
+    
+  }
+  file_hash_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), file_hash,
+      GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (file_hash_.IsDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited())) {
+    file_hash_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:omnibox.FileChunkUploadRequest.file_hash)
+}
+
+// string file_name = 2;
 inline void FileChunkUploadRequest::clear_file_name() {
   file_name_.ClearToEmpty();
 }
@@ -562,27 +667,98 @@ inline void FileChunkUploadRequest::set_allocated_file_name(std::string* file_na
   // @@protoc_insertion_point(field_set_allocated:omnibox.FileChunkUploadRequest.file_name)
 }
 
-// int64 offset = 2;
-inline void FileChunkUploadRequest::clear_offset() {
-  offset_ = int64_t{0};
+// int64 total_size = 3;
+inline void FileChunkUploadRequest::clear_total_size() {
+  total_size_ = int64_t{0};
 }
-inline int64_t FileChunkUploadRequest::_internal_offset() const {
-  return offset_;
+inline int64_t FileChunkUploadRequest::_internal_total_size() const {
+  return total_size_;
 }
-inline int64_t FileChunkUploadRequest::offset() const {
-  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.offset)
-  return _internal_offset();
+inline int64_t FileChunkUploadRequest::total_size() const {
+  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.total_size)
+  return _internal_total_size();
 }
-inline void FileChunkUploadRequest::_internal_set_offset(int64_t value) {
+inline void FileChunkUploadRequest::_internal_set_total_size(int64_t value) {
   
-  offset_ = value;
+  total_size_ = value;
 }
-inline void FileChunkUploadRequest::set_offset(int64_t value) {
-  _internal_set_offset(value);
-  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.offset)
+inline void FileChunkUploadRequest::set_total_size(int64_t value) {
+  _internal_set_total_size(value);
+  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.total_size)
 }
 
-// bytes data = 3;
+// string block_hash = 4;
+inline void FileChunkUploadRequest::clear_block_hash() {
+  block_hash_.ClearToEmpty();
+}
+inline const std::string& FileChunkUploadRequest::block_hash() const {
+  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.block_hash)
+  return _internal_block_hash();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileChunkUploadRequest::set_block_hash(ArgT0&& arg0, ArgT... args) {
+ 
+ block_hash_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.block_hash)
+}
+inline std::string* FileChunkUploadRequest::mutable_block_hash() {
+  std::string* _s = _internal_mutable_block_hash();
+  // @@protoc_insertion_point(field_mutable:omnibox.FileChunkUploadRequest.block_hash)
+  return _s;
+}
+inline const std::string& FileChunkUploadRequest::_internal_block_hash() const {
+  return block_hash_.Get();
+}
+inline void FileChunkUploadRequest::_internal_set_block_hash(const std::string& value) {
+  
+  block_hash_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
+}
+inline std::string* FileChunkUploadRequest::_internal_mutable_block_hash() {
+  
+  return block_hash_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
+}
+inline std::string* FileChunkUploadRequest::release_block_hash() {
+  // @@protoc_insertion_point(field_release:omnibox.FileChunkUploadRequest.block_hash)
+  return block_hash_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+}
+inline void FileChunkUploadRequest::set_allocated_block_hash(std::string* block_hash) {
+  if (block_hash != nullptr) {
+    
+  } else {
+    
+  }
+  block_hash_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), block_hash,
+      GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (block_hash_.IsDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited())) {
+    block_hash_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:omnibox.FileChunkUploadRequest.block_hash)
+}
+
+// int32 chunk_index = 5;
+inline void FileChunkUploadRequest::clear_chunk_index() {
+  chunk_index_ = 0;
+}
+inline int32_t FileChunkUploadRequest::_internal_chunk_index() const {
+  return chunk_index_;
+}
+inline int32_t FileChunkUploadRequest::chunk_index() const {
+  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.chunk_index)
+  return _internal_chunk_index();
+}
+inline void FileChunkUploadRequest::_internal_set_chunk_index(int32_t value) {
+  
+  chunk_index_ = value;
+}
+inline void FileChunkUploadRequest::set_chunk_index(int32_t value) {
+  _internal_set_chunk_index(value);
+  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.chunk_index)
+}
+
+// bytes data = 6;
 inline void FileChunkUploadRequest::clear_data() {
   data_.ClearToEmpty();
 }
@@ -633,7 +809,27 @@ inline void FileChunkUploadRequest::set_allocated_data(std::string* data) {
   // @@protoc_insertion_point(field_set_allocated:omnibox.FileChunkUploadRequest.data)
 }
 
-// bool is_eof = 4;
+// int64 offset = 7;
+inline void FileChunkUploadRequest::clear_offset() {
+  offset_ = int64_t{0};
+}
+inline int64_t FileChunkUploadRequest::_internal_offset() const {
+  return offset_;
+}
+inline int64_t FileChunkUploadRequest::offset() const {
+  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.offset)
+  return _internal_offset();
+}
+inline void FileChunkUploadRequest::_internal_set_offset(int64_t value) {
+  
+  offset_ = value;
+}
+inline void FileChunkUploadRequest::set_offset(int64_t value) {
+  _internal_set_offset(value);
+  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.offset)
+}
+
+// bool is_eof = 8;
 inline void FileChunkUploadRequest::clear_is_eof() {
   is_eof_ = false;
 }
@@ -651,26 +847,6 @@ inline void FileChunkUploadRequest::_internal_set_is_eof(bool value) {
 inline void FileChunkUploadRequest::set_is_eof(bool value) {
   _internal_set_is_eof(value);
   // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.is_eof)
-}
-
-// int64 total_size = 5;
-inline void FileChunkUploadRequest::clear_total_size() {
-  total_size_ = int64_t{0};
-}
-inline int64_t FileChunkUploadRequest::_internal_total_size() const {
-  return total_size_;
-}
-inline int64_t FileChunkUploadRequest::total_size() const {
-  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadRequest.total_size)
-  return _internal_total_size();
-}
-inline void FileChunkUploadRequest::_internal_set_total_size(int64_t value) {
-  
-  total_size_ = value;
-}
-inline void FileChunkUploadRequest::set_total_size(int64_t value) {
-  _internal_set_total_size(value);
-  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadRequest.total_size)
 }
 
 // -------------------------------------------------------------------
@@ -748,7 +924,27 @@ inline void FileChunkUploadResponse::set_allocated_message(std::string* message)
   // @@protoc_insertion_point(field_set_allocated:omnibox.FileChunkUploadResponse.message)
 }
 
-// int64 next_offset = 3;
+// bool is_duplicate = 3;
+inline void FileChunkUploadResponse::clear_is_duplicate() {
+  is_duplicate_ = false;
+}
+inline bool FileChunkUploadResponse::_internal_is_duplicate() const {
+  return is_duplicate_;
+}
+inline bool FileChunkUploadResponse::is_duplicate() const {
+  // @@protoc_insertion_point(field_get:omnibox.FileChunkUploadResponse.is_duplicate)
+  return _internal_is_duplicate();
+}
+inline void FileChunkUploadResponse::_internal_set_is_duplicate(bool value) {
+  
+  is_duplicate_ = value;
+}
+inline void FileChunkUploadResponse::set_is_duplicate(bool value) {
+  _internal_set_is_duplicate(value);
+  // @@protoc_insertion_point(field_set:omnibox.FileChunkUploadResponse.is_duplicate)
+}
+
+// int64 next_offset = 4;
 inline void FileChunkUploadResponse::clear_next_offset() {
   next_offset_ = int64_t{0};
 }

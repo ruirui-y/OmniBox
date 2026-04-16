@@ -3,56 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <title>OmniBox | 万象魔盒</title>
-    <style>
-        body {
-            background-color: #121212;
-            color: #00ffcc;
-            font-family: monospace;
-            text-align: center;
-            padding-top: 50px;
-        }
-
-        .box {
-            border: 2px dashed #00ffcc;
-            padding: 50px;
-            width: 50%;
-            margin: 0 auto;
-            border-radius: 10px;
-        }
-
-        button {
-            background-color: #00ffcc;
-            color: #121212;
-            padding: 10px 20px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-            button:disabled {
-                cursor: not-allowed;
-            }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>📦 OmniBox 核心控制台</h1>
-    <div class="box">
-        <h3>工业级传送门：流式切片直传</h3>
-        <input type="file" id="fileInput" style="color: #fff;"><br><br>
+    <h1>[ OMNI_BOX_SYS_TERMINAL ]</h1>
 
-        <button id="uploadBtn" onclick="new OmniUploader('fileInput', 'uploadBtn', 'statusText', 'progressBar').start()">🔥 启动文件传送</button>
+    <div class="container">
+        <div class="panel file-system-panel">
+            <div class="path-bar">
+                <span>📍 当前路径: <span id="currentPathLabel">/root/</span></span>
+                <button id="btnNewFolder">+ 新建目录</button>
+            </div>
 
-        <h4 id="statusText" style="color: #ffaa00; margin-top: 20px;">等待命令...</h4>
-        <div style="width: 100%; background: #333; height: 20px; border-radius: 10px; margin-top: 10px; overflow: hidden;">
-            <div id="progressBar" style="width: 0%; background: #00ffcc; height: 100%; transition: width 0.1s linear;"></div>
+            <ul class="file-list" id="fileListContainer">
+                <li style="text-align: center; color: #555;">[ 系统初始化中... ]</li>
+            </ul>
         </div>
 
-        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; color: #888; font-family: monospace;">
-            <span id="timeText">⏱️ 已耗时: 0.0s</span>
-            <span id="speedText">🚀 速率: 0.00 MB/s</span>
+        <div class="panel upload-panel">
+            <h3 class="panel-title">UPLINK_CONSOLE</h3>
+            <p class="panel-meta">
+                > TARGET_DIR: <span id="uploadTargetLabel">/root/</span><br>
+                > PROTOCOL: CHUNKED_RAPID_HASH
+            </p>
+
+            <div class="file-drop-zone">
+                <input type="file" id="fileInput" class="custom-file-input">
+            </div>
+
+            <button id="btnStartUpload">⚡ INITIATE_TRANSFER</button>
+
+            <h4 id="statusText" class="status-text">[ STANDBY ]</h4>
+
+            <div class="progress-container">
+                <div id="progressBar"></div>
+            </div>
+
+            <div class="transfer-stats">
+                <span id="timeText">T-PLUS: 0.0s</span>
+                <span id="speedText">BANDWIDTH: -- MB/s</span>
+            </div>
         </div>
     </div>
 
-    <script src="/uploader.js"></script>
+    <script src="/js/OmniUploader.js"></script>
+    <script src="/js/FileSystemManager.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>

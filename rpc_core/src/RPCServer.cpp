@@ -19,7 +19,6 @@ void RPCServer::Run(int thread_num, int conn_time_out)
 		});
 
 	server.Start(thread_num);
-    loop_->Loop();
 }
 
 void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)

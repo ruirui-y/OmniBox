@@ -24,5 +24,6 @@ int main(int argc, char** argv)
     // 阻塞运行，静静等待 Gateway 发来的 RPC 碎片
     transfer_rpc_server.Run(4);
 
+    main_loop.Loop();
     return 0;
 }

@@ -2,13 +2,14 @@
 #include <thread>
 #include <chrono>
 #include <mymuduo/db/ConnectionPool.h>
+#include <mymuduo/base/ThreadPool.h>
 #include "RPCServer.h"
 #include "MyGatewayService.h"
 #include "GatewayTcpServer.h"
 
 int main(int argc, char** argv)
 {
-    EventLoop main_loop;                                                                        // 整个进程唯一的超级心脏
+    EventLoop main_loop;                                                                            // 整个进程唯一的超级心脏
 
     // 1. 启动外网网关 (挂载到 main_loop)
     GatewayTcpServer tcp_server(&main_loop, "0.0.0.0", 8001);
@@ -22,8 +23,8 @@ int main(int argc, char** argv)
     ConnectionPool::Instance().Init("127.0.0.1", "root", "123456", "omni_box");
 
     // 启动监听 (它们内部的 acceptor 开始工作)
-    tcp_server.Start(4);                                                                        // 网关分配 4 个 Worker 线程
-    gateway_rpc_server.Run(2);                                                                  // RPC 分配 2 个 Worker 线程
+    tcp_server.Start(4);                                                                            // 网关分配 4 个 Worker 线程
+    gateway_rpc_server.Run(2);                                                                    // RPC 分配 2 个 Worker 线程
 
     LOG_INFO << "Server is fully started. Gateway: 8001, RPC: 8080";
 

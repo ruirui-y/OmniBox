@@ -4,6 +4,11 @@
 #include <mymuduo/Log/Logger.h>
 #include <endian.h>
 
+RPCServer::RPCServer(EventLoop* loop, std::string ip, uint16_t port)
+    :server_(loop_, ip, port, 100), loop_(loop), ip_(ip), port_(port)
+{
+}
+
 void RPCServer::RegisterService(google::protobuf::Service* service)
 {
 	services[service->GetDescriptor()->name()] = service;
@@ -11,14 +16,13 @@ void RPCServer::RegisterService(google::protobuf::Service* service)
 
 void RPCServer::Run(int thread_num, int conn_time_out)
 {
-	TcpServer server(loop_, ip_, port_, conn_time_out);
-	server.SetMessageCallback(
+	server_.SetMessageCallback(
 		[this](const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)
 		{
 			OnMessage(conn, buffer);
 		});
 
-	server.Start(thread_num);
+    server_.Start(thread_num);
 }
 
 void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)

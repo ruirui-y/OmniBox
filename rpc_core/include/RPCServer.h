@@ -11,8 +11,7 @@
 class RPCServer 
 {
 public:
-	RPCServer(EventLoop* loop, std::string ip, uint16_t port)
-		:loop_(loop), ip_(ip), port_(port) {}
+	RPCServer(EventLoop* loop, std::string ip, uint16_t port);
 
 	void RegisterService(google::protobuf::Service* service);
 	void Run(int thread_num = 1, int conn_time_out = 1000);
@@ -23,7 +22,8 @@ private:
 
 private:
 	std::unordered_map<std::string, google::protobuf::Service*> services;
-	EventLoop* loop_;;
+	TcpServer server_;
+	EventLoop* loop_;
 	std::string ip_;
 	uint16_t port_;
 };

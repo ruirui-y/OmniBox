@@ -36,56 +36,171 @@ class OmniUploader {
 
         // 🚀 启动滑动窗口并发引擎！
         try {
-            await this.uploadConcurrently(file);
+            // ==========================================
+            // 🎬 阶段一：前端暗流涌动 (提取秒传特征)
+            // ==========================================
+            this.speedText.innerText = "🧠 状态: 疯狂计算量子哈希中...";
+            const fileHash = await this.calculateRapidHash(file);
+            console.log(`[极客嗅探] 文件大小: ${file.size}, 急速哈希: ${fileHash}`);
+
+            // ==========================================
+            // 🎬 阶段二：网关查岗 (秒传判定)
+            // ==========================================
+            this.speedText.innerText = "📡 状态: 向网关查岗中...";
+            const isExist = await this.checkFastUpload(fileHash, file.name);
+
+            if (isExist) {
+                // 🏆 分支 A：秒传大满贯！
+                this.uploadedBytes = file.size; // 账本直接拉满
+                this.updateProgress(file.size);
+                const costTime = ((Date.now() - this.startTime) / 1000).toFixed(2);
+                this.timeText.innerText = `⏱️ 秒传耗时: ${costTime}s`;
+                this.speedText.innerText = "⚡ 速率: 光速 (命中秒传)";
+                this.onSuccess();
+                return; // 瞬间下班，网络层一字节都不发！
+            }
+
+            // ==========================================
+            // 🎬 阶段三：硬核苦力 (切片并发火力覆盖)
+            // ==========================================
+            this.speedText.innerText = "🚀 状态: 准备切片火力覆盖...";
+            // 记得把灵魂 (fileHash) 传进去，让服务器知道切片属于谁
+            await this.uploadConcurrently(file, fileHash);
             this.onSuccess();
         } catch (error) {
             this.onError(error.message);
         }
     }
 
-    async uploadConcurrently(file) {
+    // 🧠 核心黑科技：急速哈希算法 (大小 + 头256K + 中256K + 尾256K)
+    async calculateRapidHash(file) {
+        const SAMPLE_SIZE = 256 * 1024;                                                 // 256KB
+        let chunks = [];
+
+        // 1. 抽样头部
+        chunks.push(file.slice(0, SAMPLE_SIZE));
+
+        // 2. 抽样中间
+        if (file.size > SAMPLE_SIZE * 2) {
+            const mid = Math.floor(file.size / 2);
+            chunks.push(file.slice(mid, mid + SAMPLE_SIZE));
+        }
+
+        // 3. 抽样尾部
+        if (file.size > SAMPLE_SIZE) {
+            chunks.push(file.slice(file.size - SAMPLE_SIZE, file.size));
+        }
+
+        // 4. 将所有抽样的切片读取为二进制缓冲
+        const buffers = await Promise.all(chunks.map(c => c.arrayBuffer()));
+
+        // 5. 拼接缓冲区
+        const totalLength = buffers.reduce((acc, buf) => acc + buf.byteLength, 0);
+        const combinedBuffer = new Uint8Array(totalLength);
         let offset = 0;
-        const MAX_CONCURRENT = 4; // 🚀 工业级并发度：保持 4 个切片同时在天上飞！
+        for (const buf of buffers) {
+            combinedBuffer.set(new Uint8Array(buf), offset);
+            offset += buf.byteLength;
+        }
+
+        // 6. 调用浏览器底层原生 Crypto API 算 SHA-256 (极快，不卡 UI)
+        const hashBuffer = await crypto.subtle.digest('SHA-256', combinedBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // 7. 终极防撞金牌：文件总大小 + 抽样哈希
+        return `${file.size}_${hashHex}`;
+    }
+
+    // 📡 网关查岗请求
+    async checkFastUpload(fileHash, fileName) {
+        try {
+            // 这里假设你的网关提供了一个 /check_file 的 GET 接口
+            const response = await fetch(`/check_file?hash=${fileHash}&name=${encodeURIComponent(fileName)}`);
+            if (!response.ok) return false;
+
+            const result = await response.json();
+            // 假设服务器返回 { "status": "exists" } 表示库里有
+            return result.status === "exists";
+        } catch (e) {
+            console.warn("网关查岗失败，退化为正常上传", e);
+            return false;
+        }
+    }
+
+    async uploadConcurrently(file, fileHash)
+    {
+        let offset = 0;
+        let chunkIndex = 0;                                                                         // 👈 极其重要：这就是你数据库 mapping 表里的 block_order
+        const MAX_CONCURRENT = 4;
         let activePromises = [];
 
         while (offset < file.size) {
             const currentOffset = offset;
+            const currentChunkIndex = chunkIndex;
             const chunk = file.slice(currentOffset, currentOffset + this.CHUNK_SIZE);
             const isEof = (currentOffset + chunk.size >= file.size);
 
-            offset += this.CHUNK_SIZE; // 游标继续无情推进
+            offset += this.CHUNK_SIZE;
+            chunkIndex++;                                                                           // 序号递增
 
-            // 将发包动作封装成 Promise
-            const p = this.shootChunk(file.name, currentOffset, isEof, chunk, file.size).then(() => {
-                // 收到 200 OK 后，账本累加这块肉丁的真实重量！不管它是第几块！
+            // 【神级封装】：将“算哈希”和“发请求”打包成一个原子的异步任务
+            const task = (async () => {
+                // 1. 脑力劳动：光速计算这个 1MB 碎块的独立哈希
+                const chunkBuffer = await chunk.arrayBuffer();
+                const hashBuffer = await crypto.subtle.digest('SHA-256', chunkBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const blockHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                // 2. 体力劳动：带上双哈希身份证，发射炮弹！
+                await this.shootChunk(
+                    fileHash,
+                    blockHash,                                                                      // 这块肉丁的专属身份证
+                    currentChunkIndex,                                                              // 在总文件里的绝对排位
+                    file.name,
+                    currentOffset,
+                    isEof,
+                    chunk,
+                    file.size
+                );
+
+                // 3. 记账刷新
                 this.uploadedBytes += chunk.size;
-
-                // 刷新 UI 时，根本不需要传 offset 了，只需要传总大小
                 this.updateProgress(file.size);
+            })();
+
+            // 将这个原子任务丢进天上飞的队列
+            const p = task.then(() => {
                 activePromises.splice(activePromises.indexOf(p), 1);
             });
 
             activePromises.push(p);
 
-            // 如果当前在天上飞的切片达到了上限 (4个)，就等！
-            // Promise.race 会等待最快落地的那个切片，只要腾出 1 个空位，循环立刻继续，补充弹药！
+            // 滑动窗口控制并发度
             if (activePromises.length >= MAX_CONCURRENT) {
                 await Promise.race(activePromises);
             }
         }
 
-        // 等待最后几块肉丁彻底落地
+        // 等待所有切片全部完成
         await Promise.all(activePromises);
     }
 
-    // 独立的发包函数 (剥离了进度刷新和重试逻辑，变得极其纯粹)
-    async shootChunk(fileName, offset, isEof, chunkData, fileSize) {
+    // 独立的发包函数
+    async shootChunk(fileHash, blockHash, chunkIndex, fileName, offset, isEof, chunkData, fileSize) {
         const headers = {
             'Content-Type': 'application/octet-stream',
+
+            // 逻辑层信息 (用于网关更新虚拟文件树和 Mapping 表)
+            'X-File-Hash': fileHash,
             'X-File-Name': encodeURIComponent(fileName),
-            'X-File-Offset': offset.toString(),
-            'X-File-Eof': isEof ? '1' : '0',
-            'X-File-Size': fileSize.toString()
+            'X-File-Size': fileSize.toString(),
+            'X-Chunk-Index': chunkIndex.toString(),                         //  数据库的 block_order
+            'X-File-Eof': isEof ? '1' : '0',                                //  通知服务器：这是最后一块，可以结算大满贯了
+
+            // 物理层信息 (用于 TransferServer 底层去重和落盘)
+            'X-Block-Hash': blockHash,                                      // TransferServer 根据这个决定存不存这块肉丁
+            'X-File-Offset': offset.toString()      
         };
 
         const response = await fetch('/upload_chunk', {

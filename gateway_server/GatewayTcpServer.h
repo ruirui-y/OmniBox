@@ -8,10 +8,19 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <mymuduo/base/ThreadPool.h>
 #include "MyChannel.h"
 
 // 定义消息处理函数签名：入参是 (当前物理连接, 尚未反序列化的 Protobuf 纯二进制流)
 using MsgHandler = std::function<void(const std::shared_ptr<TcpConnection>&, const std::string&)>;
+using HttpHandler = std::function<void(
+    const std::shared_ptr<TcpConnection>& conn,
+    Buffer* buffer,
+    const std::string& method,
+    const std::string& uri,
+    const std::string& headers,
+    size_t header_end_pos
+    )>;
 
 class GatewayTcpServer
 {
@@ -27,9 +36,16 @@ private:
 
 private:    
     void RegisterHandler(uint32_t msg_id, MsgHandler handler);                                                          // 注册路由的回调函数
-    
+    void RegisterHttpHandler();                                                                                         // 注册HTTP路由的回调函数
+
     // 处理HTTP请求
     void HandleHttpRequest(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer);
+    void HandleStaticResource(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
+        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理静态资源请求
+    void HandleUploadChunk(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
+        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理上传文件块
+    void HandleCheckFile(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
+        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理检查文件是否存在
 
     // 具体的业务处理函数 (登录)
     void HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const std::string& pb_data);                        
@@ -38,13 +54,16 @@ private:
 private:
     TcpServer server_;
 
+    EventLoop* loop_;
     std::string ip_;
     uint16_t port_;
+    std::shared_ptr<ThreadPool> thread_pool_;                                                                           // 负责处理一些业务事件
 
     // 会话管理器 (封装在类内部，绝对安全)
     std::mutex session_mutex_;
     std::unordered_map<int32_t, std::shared_ptr<TcpConnection>> user_sessions_;
     std::unordered_map<uint32_t, MsgHandler> msg_dispatcher_;                                                           // 事件分发
+    std::unordered_map<std::string, HttpHandler> router_;                                                               // http事件分片
 
     // 网关全局共享的rpc通道
     std::shared_ptr<MyChannel> login_channel_;

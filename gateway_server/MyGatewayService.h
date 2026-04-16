@@ -45,7 +45,12 @@ public:
             response->set_errcode(1);
             response->set_errmsg("User offline");
         }
-        done->Run();
+
+        if (done)
+        {
+            done->Run();
+            delete done;
+        }
     }
 
 private:

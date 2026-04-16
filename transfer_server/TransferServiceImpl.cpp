@@ -46,7 +46,7 @@ void TransferServiceImpl::UploadChunk(::google::protobuf::RpcController* control
 
             if (current_total == total_size)
             {
-                LOG_INFO << "====== 传输大满贯！====== 字节分毫不差，彻底落盘！";
+                LOG_INFO << "file_name = " << file_name <<" ====== 传输大满贯！====== 字节分毫不差，彻底落盘！";
 
                 // 收尾工作：关掉文件，把这个上下文从大字典里踢出去
                 ctx->file_stream.close();
@@ -64,6 +64,7 @@ void TransferServiceImpl::UploadChunk(::google::protobuf::RpcController* control
             if (done)
             {
                 done->Run();
+                delete done;
             }
         });
 }

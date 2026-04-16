@@ -55,7 +55,12 @@ public:
         // 4. 释放分布式锁并执行回调操作
         // 这里的 done 本质是 RpcProvider 传进来的 SendRpcResponse 回调
         redis.Del(lock_key);
-        done->Run();                                                                                
+
+        if (done)
+        {
+            done->Run();
+            delete done;
+        }
     }
 };
 

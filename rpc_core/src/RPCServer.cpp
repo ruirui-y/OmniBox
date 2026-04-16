@@ -11,7 +11,7 @@ void RPCServer::RegisterService(google::protobuf::Service* service)
 
 void RPCServer::Run(int thread_num, int conn_time_out)
 {
-	TcpServer server(&event_loop_, ip_, port_, conn_time_out);
+	TcpServer server(loop_, ip_, port_, conn_time_out);
 	server.SetMessageCallback(
 		[this](const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)
 		{
@@ -19,7 +19,7 @@ void RPCServer::Run(int thread_num, int conn_time_out)
 		});
 
 	server.Start(thread_num);
-	event_loop_.Loop();
+    loop_->Loop();
 }
 
 void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer)

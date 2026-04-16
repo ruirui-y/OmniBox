@@ -14,7 +14,8 @@ int main(int argc, char** argv)
     ConnectionPool::Instance().Init("127.0.0.1", "root", "123456", "omni_box");
     
     // 初始化你的 RPC 服务器 (基于 MyMuduo)
-    RPCServer transfer_rpc_server(ip, port);
+    EventLoop main_loop;
+    RPCServer transfer_rpc_server(&main_loop, ip, port);
 
     // 注册刚刚写好的文件传输服务
     TransferServiceImpl transfer_service;

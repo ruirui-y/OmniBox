@@ -4,7 +4,8 @@
 
 int main(int argc, char** argv) 
 {
-    RPCServer server("127.0.0.1", 9090);
+    EventLoop main_loop;
+    RPCServer server(&main_loop, "127.0.0.1", 9090);
     MyLoginService Login;
     server.RegisterService(&Login);
 

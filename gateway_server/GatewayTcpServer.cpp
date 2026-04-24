@@ -6,6 +6,9 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
+#include <nlohmann/json.hpp>
+#include "login.pb.h"
+#include "meta_service.pb.h"
 #include "client_gateway.pb.h"
 #include "MsgID.h"
 #include "login.pb.h"     
@@ -14,6 +17,8 @@
 #include "MyController.h"
 #include "HttpRpcClosure.h"
 using namespace std::placeholders;
+using json = nlohmann::json;
+using namespace game::rpc;
 
 GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint16_t port)
     : server_(loop, ip, port, 100), loop_(loop), ip_(ip), port_(port)
@@ -27,7 +32,8 @@ GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint1
 
     // 建立长连接
     login_channel_ = std::make_shared<MyChannel>("127.0.0.1", 9090);
-    transfer_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8082);
+    //transfer_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8082);
+    //meta_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8090);
 
     // 初始化线程池
     thread_pool_ = std::make_shared<ThreadPool>("gateway_pool_");
@@ -46,8 +52,37 @@ void GatewayTcpServer::RegisterHandler(uint32_t msg_id, MsgHandler handler)
 
 void GatewayTcpServer::RegisterHttpHandler()
 {
+    // =======================================================
+    // 🔐 鉴权面 (Auth Plane) - 登录服务
+    // =======================================================
+    router_["POST /api/login"] = std::bind(&GatewayTcpServer::HandleLogin, this, _1, _2, _3, _4, _5, _6);
+    router_["POST /api/heartbeat"] = std::bind(&GatewayTcpServer::HandleHeartbeat, this, _1, _2, _3, _4, _5, _6);
+    
+    // =======================================================
+    // 📦 数据面 (Data Plane) - 文件传输相关
+    // =======================================================
     router_["POST /upload_chunk"] = std::bind(&GatewayTcpServer::HandleUploadChunk, this, _1, _2, _3, _4, _5, _6);
+    
+    // =======================================================
+    // 🧠 控制面 (Control Plane) - 元数据与文件树操作
+    // =======================================================
+    // 1. 秒传查岗 (GET 请求带参数，如 /check_file?hash=...)
     router_["GET /check_file"] = std::bind(&GatewayTcpServer::HandleCheckFile, this, _1, _2, _3, _4, _5, _6);
+
+    // 2. 拉取目录列表 (GET 请求带参数，如 /api/list_dir?parent_id=0)
+    router_["GET /api/list_dir"] = std::bind(&GatewayTcpServer::HandleListDirectory, this, _1, _2, _3, _4, _5, _6);
+
+    // 3. 新建目录 (POST 请求，参数在 JSON Body 里)
+    router_["POST /api/create_folder"] = std::bind(&GatewayTcpServer::HandleCreateFolder, this, _1, _2, _3, _4, _5, _6);
+
+    // 4. 删除节点 (POST 请求，参数在 JSON Body 里)
+    router_["POST /api/delete_node"] = std::bind(&GatewayTcpServer::HandleDeleteNode, this, _1, _2, _3, _4, _5, _6);
+
+    // 5. 重命名节点 (POST 请求，参数在 JSON Body 里)
+    router_["POST /api/rename_node"] = std::bind(&GatewayTcpServer::HandleRenameNode, this, _1, _2, _3, _4, _5, _6);
+
+    // 6. 移动节点 (POST 请求，参数在 JSON Body 里)
+    router_["POST /api/move_node"] = std::bind(&GatewayTcpServer::HandleMoveNode, this, _1, _2, _3, _4, _5, _6);
 }
 
 void GatewayTcpServer::OnConnection(const std::shared_ptr<TcpConnection>& conn)
@@ -244,6 +279,146 @@ void GatewayTcpServer::HandleStaticResource(const std::shared_ptr<TcpConnection>
     conn->ForceClose();
 }
 
+void GatewayTcpServer::HandleLogin(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
+    const std::string& uri, const std::string& headers, size_t header_end_pos)
+{
+    // 1. TCP 半包与粘包防御 (解析 Content-Length)
+    size_t cl_pos = headers.find("Content-Length: ");
+    if (cl_pos == std::string::npos) {
+        conn->Send("HTTP/1.1 400 Bad Request\r\n\r\n Missing Content-Length");
+        return;
+    }
+
+    size_t cl_end = headers.find("\r\n", cl_pos);
+    int content_length = std::stoi(headers.substr(cl_pos + 16, cl_end - cl_pos - 16));
+    size_t total_expected_bytes = header_end_pos + 4 + content_length;
+
+    // 如果网卡收到的数据还不够一个完整的 HTTP 报文，直接 return，等下次 epoll 唤醒
+    if (buffer->ReadableBytes() < total_expected_bytes) {
+        return;
+    }
+
+    // 2. 提取纯 JSON 字符串
+    std::string full_request = buffer->RetrieveAsString(total_expected_bytes);
+    std::string json_body_str = full_request.substr(header_end_pos + 4);
+
+    // 3. 解析 JSON
+    json req_json = json::parse(json_body_str, nullptr, false);
+    if (req_json.is_discarded()) {
+        conn->Send("HTTP/1.1 400 Bad Request\r\n\r\n Invalid JSON format");
+        return;
+    }
+
+    // 4. 组装发往 LoginService 的 RPC 请求
+    // 注意：假设你的 LoginRequest 是在全局命名空间，如果是 game::rpc::LoginRequest 请补全
+    ::LoginRequest rpc_req;
+    rpc_req.set_username(req_json.value("username", ""));
+    rpc_req.set_password(req_json.value("password", ""));
+
+    auto rpc_resp = std::make_shared<::LoginResponse>();
+    auto controller = std::make_shared<MyController>();
+
+    // 5. 👑 定义 RPC 调用成功后，如何回复前端的 HTTP 请求
+    std::function<void(const TcpConnectionPtr&, const std::shared_ptr<::LoginResponse>&)> success_callback =
+        [](const TcpConnectionPtr& conn, const std::shared_ptr<::LoginResponse>& resp)
+        {
+            json res_json;
+            // 这里的字段名必须和你的 AuthManager.js 里期待的一模一样！
+            res_json["errcode"] = resp->errcode();
+            res_json["errmsg"] = resp->errmsg();
+
+            // 只有登录成功时，才下发敏感凭证
+            if (resp->errcode() == 0) {
+                res_json["token"] = resp->token();
+                res_json["user_id"] = resp->user_id();
+            }
+
+            std::string body = res_json.dump();
+            std::string http_response =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json; charset=utf-8\r\n"
+                "Content-Length: " + std::to_string(body.length()) + "\r\n"
+                "Connection: keep-alive\r\n\r\n" + body;
+
+            conn->Send(http_response);
+        };
+
+    auto done = new HttpRpcClosure<::LoginResponse>(conn, controller, rpc_resp, success_callback);
+
+    // 6. 召唤 Stub 发送 RPC 请求
+    game::rpc::LoginService_Stub stub(login_channel_.get());
+    stub.Login(controller.get(), &rpc_req, rpc_resp.get(), done);
+}
+
+void GatewayTcpServer::HandleHeartbeat(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
+    const std::string& uri, const std::string& headers, size_t header_end_pos)
+{
+    // 1. TCP 半包与粘包防御：提取 Content-Length
+    size_t cl_pos = headers.find("Content-Length: ");
+    if (cl_pos == std::string::npos) {
+        conn->Send("HTTP/1.1 400 Bad Request\r\n\r\n Missing Content-Length");
+        return;
+    }
+
+    size_t cl_end = headers.find("\r\n", cl_pos);
+    int content_length = std::stoi(headers.substr(cl_pos + 16, cl_end - cl_pos - 16));
+    size_t total_expected_bytes = header_end_pos + 4 + content_length;
+
+    // 数据未收全，等待下一次可读事件
+    if (buffer->ReadableBytes() < total_expected_bytes) {
+        return;
+    }
+
+    // 2. 提取并清理纯 JSON 字符串
+    std::string full_request = buffer->RetrieveAsString(total_expected_bytes);
+    std::string json_body_str = full_request.substr(header_end_pos + 4);
+
+    // 3. 反序列化 JSON
+    json req_json = json::parse(json_body_str, nullptr, false);
+    if (req_json.is_discarded()) {
+        conn->Send("HTTP/1.1 400 Bad Request\r\n\r\n Invalid JSON format");
+        return;
+    }
+
+    // 4. 组装 RPC 请求发往 LoginService
+    ::game::rpc::HeartbeatRequest rpc_req;
+    // ⚠️ 注意：这里的键名 "user_id" 和 "token" 必须和前端 JS 中 body: JSON.stringify({...}) 里的保持完全一致！
+    rpc_req.set_user_id(req_json.value("user_id", 0LL));
+    rpc_req.set_token(req_json.value("token", ""));
+
+    auto rpc_resp = std::make_shared<::game::rpc::HeartbeatResponse>();
+    auto controller = std::make_shared<MyController>();
+
+    // 5. 定义 RPC 成功后的回调：将服务端处理结果封装成 HTTP JSON 返回给前端
+    std::function<void(const TcpConnectionPtr&, const std::shared_ptr<::game::rpc::HeartbeatResponse>&)> success_callback =
+        [](const TcpConnectionPtr& conn, const std::shared_ptr<::game::rpc::HeartbeatResponse>& resp)
+        {
+            json res_json;
+            res_json["success"] = resp->success();
+
+            // 如果心跳成功，顺便把服务端的时间戳下发给前端（前端可以用作本地时间校准）
+            if (resp->success()) {
+                res_json["server_time"] = resp->server_time();
+            }
+
+            std::string body = res_json.dump();
+            std::string http_response =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json; charset=utf-8\r\n"
+                "Content-Length: " + std::to_string(body.length()) + "\r\n"
+                "Connection: keep-alive\r\n\r\n" + body;
+
+            conn->Send(http_response);
+        };
+
+    auto done = new HttpRpcClosure<::game::rpc::HeartbeatResponse>(conn, controller, rpc_resp, success_callback);
+
+    // 6. 通过 LoginService 的专属 Channel 发送 RPC 请求
+    // 假设你在网关初始化时，给登录服务建的通道叫 login_channel_
+    LOG_INFO << "dis heart request";
+    game::rpc::LoginService_Stub stub(login_channel_.get());
+    stub.Heartbeat(controller.get(), &rpc_req, rpc_resp.get(), done);
+}
 
 // ==============================================================================
 /* 💡 真实 TCP 字节流形态 (架构 2.0 切片上传)：
@@ -443,7 +618,7 @@ void GatewayTcpServer::HandleCheckFile(const std::shared_ptr<TcpConnection>& con
 
                 // 继续向线程池派发写库任务
                 DbExecutor::AsyncUpdate(loop_, thread_pool_.get(), insert_sql, insert_params,
-                    [conn](int affectedRows)
+                    [conn](int affectedRows, int lastInsertId)
                     {
                         if (affectedRows > 0) {
                             LOG_INFO << "✅ [秒传完成] 虚拟文件树挂载成功！(无物理 I/O 产生)";
@@ -480,6 +655,82 @@ void GatewayTcpServer::HandleCheckFile(const std::shared_ptr<TcpConnection>& con
                 conn->Send(http_response);
             }
         });
+}
+
+void GatewayTcpServer::HandleListDirectory(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, const std::string& uri, const std::string& headers, size_t header_end_pos)
+{
+    // 1. 提取 URI 参数
+    auto get_uri_param = [&](const std::string& key) -> std::string {
+        size_t pos = uri.find(key + "=");
+        if (pos == std::string::npos) return "";
+        size_t end = uri.find("&", pos);
+        if (end == std::string::npos) end = uri.length();
+        return uri.substr(pos + key.length() + 1, end - pos - key.length() - 1);
+        };
+
+    std::string parent_id_str = get_uri_param("parent_id");
+    int64_t parent_id = parent_id_str.empty() ? 0 : std::stoll(parent_id_str);
+
+    // GET 请求没有 Body，直接清空 buffer 即可
+    buffer->RetrieveAsString(header_end_pos + 4);
+
+    // 2. 组装 RPC 请求
+    omnibox::ListDirectoryRequest rpc_req;
+    rpc_req.set_user_id(1001); // 模拟当前登录用户
+    rpc_req.set_parent_id(parent_id);
+
+    auto rpc_resp = std::make_shared<omnibox::ListDirectoryResponse>();
+    auto controller = std::make_shared<MyController>();
+
+    // 3. RPC 成功回调：将 Protobuf 数组转成 JSON 返回给前端
+    std::function<void(const TcpConnectionPtr&, const std::shared_ptr<omnibox::ListDirectoryResponse>&)> success_callback =
+        [](const TcpConnectionPtr& conn, const std::shared_ptr<omnibox::ListDirectoryResponse>& resp)
+        {
+            json response_json;
+            response_json["success"] = resp->success();
+            response_json["message"] = resp->message();
+            response_json["nodes"] = json::array(); // 初始化为空数组
+
+            for (int i = 0; i < resp->nodes_size(); ++i) {
+                const auto& node = resp->nodes(i);
+                json node_json;
+                node_json["node_id"] = node.node_id();
+                node_json["node_name"] = node.node_name();
+                node_json["is_dir"] = node.is_dir();
+                node_json["file_size"] = node.file_size();
+                node_json["update_time"] = node.update_time();
+                node_json["file_hash"] = node.file_hash();
+                response_json["nodes"].push_back(node_json);
+            }
+
+            std::string body = response_json.dump();
+            std::string http_response = "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: " + std::to_string(body.length()) + "\r\nConnection: keep-alive\r\n\r\n" + body;
+            conn->Send(http_response);
+        };
+
+    auto done = new HttpRpcClosure<omnibox::ListDirectoryResponse>(conn, controller, rpc_resp, success_callback);
+    omnibox::MetaService_Stub stub(meta_channel_.get());
+    stub.ListDirectory(controller.get(), &rpc_req, rpc_resp.get(), done);
+}
+
+void GatewayTcpServer::HandleCreateFolder(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, const std::string& uri, const std::string& headers, size_t header_end_pos)
+{
+
+}
+
+void GatewayTcpServer::HandleDeleteNode(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, const std::string& uri, const std::string& headers, size_t header_end_pos)
+{
+
+}
+
+void GatewayTcpServer::HandleRenameNode(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, const std::string& uri, const std::string& headers, size_t header_end_pos)
+{
+    
+}
+
+void GatewayTcpServer::HandleMoveNode(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, const std::string& uri, const std::string& headers, size_t header_end_pos)
+{
+
 }
 
 // ================== 具体的业务处理 (Handler) ==================

@@ -23,9 +23,19 @@ message LoginResponse
     int32 user_id = 4;                                                          // 服务器查库返回的用户id
 }
 
+message HeartbeatRequest {
+    int64 user_id = 1;
+    string token = 2;                                                           // 校验合法性，防止别人恶意刷你的接口
+}
+
+message HeartbeatResponse {
+    bool success = 1;
+    int64 server_time = 2;                                                      // 可选：返回服务端时间，方便前端做对齐
+}
+
 // 3. 定义服务接口
 service LoginService 
 {
-    // 声明一个 RPC 方法：接收 LoginRequest，返回 LoginResponse
-    rpc Login(LoginRequest) returns(LoginResponse);
+    rpc Login(LoginRequest) returns(LoginResponse);                             // 处理登录方法
+    rpc Heartbeat(HeartbeatRequest) returns(HeartbeatResponse);                 // 心跳保活
 }

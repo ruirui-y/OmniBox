@@ -46,9 +46,35 @@ struct LoginResponseDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT LoginResponseDefaultTypeInternal _LoginResponse_default_instance_;
+constexpr HeartbeatRequest::HeartbeatRequest(
+  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
+  : token_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
+  , user_id_(int64_t{0}){}
+struct HeartbeatRequestDefaultTypeInternal {
+  constexpr HeartbeatRequestDefaultTypeInternal()
+    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
+  ~HeartbeatRequestDefaultTypeInternal() {}
+  union {
+    HeartbeatRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT HeartbeatRequestDefaultTypeInternal _HeartbeatRequest_default_instance_;
+constexpr HeartbeatResponse::HeartbeatResponse(
+  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
+  : server_time_(int64_t{0})
+  , success_(false){}
+struct HeartbeatResponseDefaultTypeInternal {
+  constexpr HeartbeatResponseDefaultTypeInternal()
+    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
+  ~HeartbeatResponseDefaultTypeInternal() {}
+  union {
+    HeartbeatResponse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT HeartbeatResponseDefaultTypeInternal _HeartbeatResponse_default_instance_;
 }  // namespace rpc
 }  // namespace game
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_login_2eproto[2];
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_login_2eproto[4];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_login_2eproto = nullptr;
 static const ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor* file_level_service_descriptors_login_2eproto[1];
 
@@ -71,30 +97,54 @@ const uint32_t TableStruct_login_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::game::rpc::LoginResponse, errmsg_),
   PROTOBUF_FIELD_OFFSET(::game::rpc::LoginResponse, token_),
   PROTOBUF_FIELD_OFFSET(::game::rpc::LoginResponse, user_id_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::game::rpc::HeartbeatRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::game::rpc::HeartbeatRequest, user_id_),
+  PROTOBUF_FIELD_OFFSET(::game::rpc::HeartbeatRequest, token_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::game::rpc::HeartbeatResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::game::rpc::HeartbeatResponse, success_),
+  PROTOBUF_FIELD_OFFSET(::game::rpc::HeartbeatResponse, server_time_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::game::rpc::LoginRequest)},
   { 8, -1, -1, sizeof(::game::rpc::LoginResponse)},
+  { 18, -1, -1, sizeof(::game::rpc::HeartbeatRequest)},
+  { 26, -1, -1, sizeof(::game::rpc::HeartbeatResponse)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::game::rpc::_LoginRequest_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::game::rpc::_LoginResponse_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::game::rpc::_HeartbeatRequest_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::game::rpc::_HeartbeatResponse_default_instance_),
 };
 
 const char descriptor_table_protodef_login_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\013login.proto\022\010game.rpc\"2\n\014LoginRequest\022"
   "\020\n\010username\030\001 \001(\t\022\020\n\010password\030\002 \001(\t\"P\n\rL"
   "oginResponse\022\017\n\007errcode\030\001 \001(\005\022\016\n\006errmsg\030"
-  "\002 \001(\t\022\r\n\005token\030\003 \001(\t\022\017\n\007user_id\030\004 \001(\0052H\n"
-  "\014LoginService\0228\n\005Login\022\026.game.rpc.LoginR"
-  "equest\032\027.game.rpc.LoginResponseB\003\200\001\001b\006pr"
-  "oto3"
+  "\002 \001(\t\022\r\n\005token\030\003 \001(\t\022\017\n\007user_id\030\004 \001(\005\"2\n"
+  "\020HeartbeatRequest\022\017\n\007user_id\030\001 \001(\003\022\r\n\005to"
+  "ken\030\002 \001(\t\"9\n\021HeartbeatResponse\022\017\n\007succes"
+  "s\030\001 \001(\010\022\023\n\013server_time\030\002 \001(\0032\216\001\n\014LoginSe"
+  "rvice\0228\n\005Login\022\026.game.rpc.LoginRequest\032\027"
+  ".game.rpc.LoginResponse\022D\n\tHeartbeat\022\032.g"
+  "ame.rpc.HeartbeatRequest\032\033.game.rpc.Hear"
+  "tbeatResponseB\003\200\001\001b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_login_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_login_2eproto = {
-  false, false, 244, descriptor_table_protodef_login_2eproto, "login.proto", 
-  &descriptor_table_login_2eproto_once, nullptr, 0, 2,
+  false, false, 426, descriptor_table_protodef_login_2eproto, "login.proto", 
+  &descriptor_table_login_2eproto_once, nullptr, 0, 4,
   schemas, file_default_instances, TableStruct_login_2eproto::offsets,
   file_level_metadata_login_2eproto, file_level_enum_descriptors_login_2eproto, file_level_service_descriptors_login_2eproto,
 };
@@ -673,6 +723,447 @@ void LoginResponse::InternalSwap(LoginResponse* other) {
 
 // ===================================================================
 
+class HeartbeatRequest::_Internal {
+ public:
+};
+
+HeartbeatRequest::HeartbeatRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor();
+  if (!is_message_owned) {
+    RegisterArenaDtor(arena);
+  }
+  // @@protoc_insertion_point(arena_constructor:game.rpc.HeartbeatRequest)
+}
+HeartbeatRequest::HeartbeatRequest(const HeartbeatRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  token_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    token_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_token().empty()) {
+    token_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_token(), 
+      GetArenaForAllocation());
+  }
+  user_id_ = from.user_id_;
+  // @@protoc_insertion_point(copy_constructor:game.rpc.HeartbeatRequest)
+}
+
+inline void HeartbeatRequest::SharedCtor() {
+token_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  token_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+user_id_ = int64_t{0};
+}
+
+HeartbeatRequest::~HeartbeatRequest() {
+  // @@protoc_insertion_point(destructor:game.rpc.HeartbeatRequest)
+  if (GetArenaForAllocation() != nullptr) return;
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+inline void HeartbeatRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  token_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+}
+
+void HeartbeatRequest::ArenaDtor(void* object) {
+  HeartbeatRequest* _this = reinterpret_cast< HeartbeatRequest* >(object);
+  (void)_this;
+}
+void HeartbeatRequest::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void HeartbeatRequest::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+
+void HeartbeatRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:game.rpc.HeartbeatRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  token_.ClearToEmpty();
+  user_id_ = int64_t{0};
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* HeartbeatRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int64 user_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          user_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string token = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_token();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "game.rpc.HeartbeatRequest.token"));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* HeartbeatRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:game.rpc.HeartbeatRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int64 user_id = 1;
+  if (this->_internal_user_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt64ToArray(1, this->_internal_user_id(), target);
+  }
+
+  // string token = 2;
+  if (!this->_internal_token().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_token().data(), static_cast<int>(this->_internal_token().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "game.rpc.HeartbeatRequest.token");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_token(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:game.rpc.HeartbeatRequest)
+  return target;
+}
+
+size_t HeartbeatRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:game.rpc.HeartbeatRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string token = 2;
+  if (!this->_internal_token().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_token());
+  }
+
+  // int64 user_id = 1;
+  if (this->_internal_user_id() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int64SizePlusOne(this->_internal_user_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData HeartbeatRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    HeartbeatRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*HeartbeatRequest::GetClassData() const { return &_class_data_; }
+
+void HeartbeatRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<HeartbeatRequest *>(to)->MergeFrom(
+      static_cast<const HeartbeatRequest &>(from));
+}
+
+
+void HeartbeatRequest::MergeFrom(const HeartbeatRequest& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:game.rpc.HeartbeatRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_token().empty()) {
+    _internal_set_token(from._internal_token());
+  }
+  if (from._internal_user_id() != 0) {
+    _internal_set_user_id(from._internal_user_id());
+  }
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void HeartbeatRequest::CopyFrom(const HeartbeatRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:game.rpc.HeartbeatRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool HeartbeatRequest::IsInitialized() const {
+  return true;
+}
+
+void HeartbeatRequest::InternalSwap(HeartbeatRequest* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      &token_, lhs_arena,
+      &other->token_, rhs_arena
+  );
+  swap(user_id_, other->user_id_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata HeartbeatRequest::GetMetadata() const {
+  return ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
+      &descriptor_table_login_2eproto_getter, &descriptor_table_login_2eproto_once,
+      file_level_metadata_login_2eproto[2]);
+}
+
+// ===================================================================
+
+class HeartbeatResponse::_Internal {
+ public:
+};
+
+HeartbeatResponse::HeartbeatResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor();
+  if (!is_message_owned) {
+    RegisterArenaDtor(arena);
+  }
+  // @@protoc_insertion_point(arena_constructor:game.rpc.HeartbeatResponse)
+}
+HeartbeatResponse::HeartbeatResponse(const HeartbeatResponse& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&server_time_, &from.server_time_,
+    static_cast<size_t>(reinterpret_cast<char*>(&success_) -
+    reinterpret_cast<char*>(&server_time_)) + sizeof(success_));
+  // @@protoc_insertion_point(copy_constructor:game.rpc.HeartbeatResponse)
+}
+
+inline void HeartbeatResponse::SharedCtor() {
+::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+    reinterpret_cast<char*>(&server_time_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&success_) -
+    reinterpret_cast<char*>(&server_time_)) + sizeof(success_));
+}
+
+HeartbeatResponse::~HeartbeatResponse() {
+  // @@protoc_insertion_point(destructor:game.rpc.HeartbeatResponse)
+  if (GetArenaForAllocation() != nullptr) return;
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+inline void HeartbeatResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void HeartbeatResponse::ArenaDtor(void* object) {
+  HeartbeatResponse* _this = reinterpret_cast< HeartbeatResponse* >(object);
+  (void)_this;
+}
+void HeartbeatResponse::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void HeartbeatResponse::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+
+void HeartbeatResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:game.rpc.HeartbeatResponse)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&server_time_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&success_) -
+      reinterpret_cast<char*>(&server_time_)) + sizeof(success_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* HeartbeatResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // bool success = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          success_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 server_time = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          server_time_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* HeartbeatResponse::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:game.rpc.HeartbeatResponse)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bool success = 1;
+  if (this->_internal_success() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(1, this->_internal_success(), target);
+  }
+
+  // int64 server_time = 2;
+  if (this->_internal_server_time() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt64ToArray(2, this->_internal_server_time(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:game.rpc.HeartbeatResponse)
+  return target;
+}
+
+size_t HeartbeatResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:game.rpc.HeartbeatResponse)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int64 server_time = 2;
+  if (this->_internal_server_time() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int64SizePlusOne(this->_internal_server_time());
+  }
+
+  // bool success = 1;
+  if (this->_internal_success() != 0) {
+    total_size += 1 + 1;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData HeartbeatResponse::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    HeartbeatResponse::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*HeartbeatResponse::GetClassData() const { return &_class_data_; }
+
+void HeartbeatResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<HeartbeatResponse *>(to)->MergeFrom(
+      static_cast<const HeartbeatResponse &>(from));
+}
+
+
+void HeartbeatResponse::MergeFrom(const HeartbeatResponse& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:game.rpc.HeartbeatResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_server_time() != 0) {
+    _internal_set_server_time(from._internal_server_time());
+  }
+  if (from._internal_success() != 0) {
+    _internal_set_success(from._internal_success());
+  }
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void HeartbeatResponse::CopyFrom(const HeartbeatResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:game.rpc.HeartbeatResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool HeartbeatResponse::IsInitialized() const {
+  return true;
+}
+
+void HeartbeatResponse::InternalSwap(HeartbeatResponse* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(HeartbeatResponse, success_)
+      + sizeof(HeartbeatResponse::success_)
+      - PROTOBUF_FIELD_OFFSET(HeartbeatResponse, server_time_)>(
+          reinterpret_cast<char*>(&server_time_),
+          reinterpret_cast<char*>(&other->server_time_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata HeartbeatResponse::GetMetadata() const {
+  return ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
+      &descriptor_table_login_2eproto_getter, &descriptor_table_login_2eproto_once,
+      file_level_metadata_login_2eproto[3]);
+}
+
+// ===================================================================
+
 LoginService::~LoginService() {}
 
 const ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor* LoginService::descriptor() {
@@ -692,6 +1183,14 @@ void LoginService::Login(::PROTOBUF_NAMESPACE_ID::RpcController* controller,
   done->Run();
 }
 
+void LoginService::Heartbeat(::PROTOBUF_NAMESPACE_ID::RpcController* controller,
+                         const ::game::rpc::HeartbeatRequest*,
+                         ::game::rpc::HeartbeatResponse*,
+                         ::google::protobuf::Closure* done) {
+  controller->SetFailed("Method Heartbeat() not implemented.");
+  done->Run();
+}
+
 void LoginService::CallMethod(const ::PROTOBUF_NAMESPACE_ID::MethodDescriptor* method,
                              ::PROTOBUF_NAMESPACE_ID::RpcController* controller,
                              const ::PROTOBUF_NAMESPACE_ID::Message* request,
@@ -707,6 +1206,14 @@ void LoginService::CallMethod(const ::PROTOBUF_NAMESPACE_ID::MethodDescriptor* m
                  response),
              done);
       break;
+    case 1:
+      Heartbeat(controller,
+             ::PROTOBUF_NAMESPACE_ID::internal::DownCast<const ::game::rpc::HeartbeatRequest*>(
+                 request),
+             ::PROTOBUF_NAMESPACE_ID::internal::DownCast<::game::rpc::HeartbeatResponse*>(
+                 response),
+             done);
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -719,6 +1226,8 @@ const ::PROTOBUF_NAMESPACE_ID::Message& LoginService::GetRequestPrototype(
   switch(method->index()) {
     case 0:
       return ::game::rpc::LoginRequest::default_instance();
+    case 1:
+      return ::game::rpc::HeartbeatRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *::PROTOBUF_NAMESPACE_ID::MessageFactory::generated_factory()
@@ -732,6 +1241,8 @@ const ::PROTOBUF_NAMESPACE_ID::Message& LoginService::GetResponsePrototype(
   switch(method->index()) {
     case 0:
       return ::game::rpc::LoginResponse::default_instance();
+    case 1:
+      return ::game::rpc::HeartbeatResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *::PROTOBUF_NAMESPACE_ID::MessageFactory::generated_factory()
@@ -757,6 +1268,13 @@ void LoginService_Stub::Login(::PROTOBUF_NAMESPACE_ID::RpcController* controller
   channel_->CallMethod(descriptor()->method(0),
                        controller, request, response, done);
 }
+void LoginService_Stub::Heartbeat(::PROTOBUF_NAMESPACE_ID::RpcController* controller,
+                              const ::game::rpc::HeartbeatRequest* request,
+                              ::game::rpc::HeartbeatResponse* response,
+                              ::google::protobuf::Closure* done) {
+  channel_->CallMethod(descriptor()->method(1),
+                       controller, request, response, done);
+}
 
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace rpc
@@ -767,6 +1285,12 @@ template<> PROTOBUF_NOINLINE ::game::rpc::LoginRequest* Arena::CreateMaybeMessag
 }
 template<> PROTOBUF_NOINLINE ::game::rpc::LoginResponse* Arena::CreateMaybeMessage< ::game::rpc::LoginResponse >(Arena* arena) {
   return Arena::CreateMessageInternal< ::game::rpc::LoginResponse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::game::rpc::HeartbeatRequest* Arena::CreateMaybeMessage< ::game::rpc::HeartbeatRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::game::rpc::HeartbeatRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::game::rpc::HeartbeatResponse* Arena::CreateMaybeMessage< ::game::rpc::HeartbeatResponse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::game::rpc::HeartbeatResponse >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

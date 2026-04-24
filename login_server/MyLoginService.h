@@ -2,66 +2,35 @@
 #define MY_LOGIN_SERVICE_H
 
 #include <string>
+#include <memory>
 #include "login.pb.h"
-#include "RedisClient.h"
-#include <mymuduo/Log/Logger.h>
-using namespace game::rpc;
+
+// 前置声明，避免在头文件中引入过多的底层依赖
+class EventLoop;
+class ThreadPool;
 
 class MyLoginService : public game::rpc::LoginService
 {
 public:
+    MyLoginService(EventLoop* loop, std::shared_ptr<ThreadPool> threadPool);
+    ~MyLoginService() = default;
 
     virtual void Login(::google::protobuf::RpcController* controller,
-        const ::LoginRequest* request,
-        ::LoginResponse* response,
-        ::google::protobuf::Closure* done)
-    {
-        // 1. 框架给业务吐出请求参数
-        std::string name = request->username();
-        std::string pwd = request->password();
+        const ::game::rpc::LoginRequest* request,
+        ::game::rpc::LoginResponse* response,
+        ::google::protobuf::Closure* done) override;
 
-        RedisClient redis;
-        if (redis.Connect("127.0.0.1", 6379) == false)
-        {
-            response->set_errcode(500);
-            response->set_errmsg("redis connect error");
-            if (done) done->Run();
-            return;
-        }
+    virtual void Heartbeat(::google::protobuf::RpcController* controller,
+        const ::game::rpc::HeartbeatRequest* request,
+        ::game::rpc::HeartbeatResponse* response,
+        ::google::protobuf::Closure* done) override;
 
-        // 2. 分布式锁防御
-        std::string lock_key = "lock:login:" + name;
-        // 尝试加锁，过期时间为3s
-        if (!redis.SetNx(lock_key, "1", 3))
-        {
-            response->set_errcode(403);
-            response->set_errmsg("server is busy, please try again later");
-            if (done) done->Run();
-            return;
-        }
+private:
+    std::string sha256(const std::string& str);
 
-        // 2. 执行本地业务todo                                                  
-
-        // 3. 把响应写回给框架
-        response->set_errcode(0);
-        response->set_errmsg("Login Success");
-        response->set_token("11111111");
-
-        // 测试
-        int32_t uid = name == "mars" ? 1 : 2;
-        LOG_INFO << "login client name = " << name << " uid = " << uid;
-        response->set_user_id(uid);
-
-        // 4. 释放分布式锁并执行回调操作
-        // 这里的 done 本质是 RpcProvider 传进来的 SendRpcResponse 回调
-        redis.Del(lock_key);
-
-        if (done)
-        {
-            done->Run();
-            delete done;
-        }
-    }
+private:
+    EventLoop* loop_;
+    std::shared_ptr<ThreadPool> thread_pool_;
 };
 
-#endif
+#endif // MY_LOGIN_SERVICE_H

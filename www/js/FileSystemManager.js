@@ -2,52 +2,53 @@
 
 class FileSystemManager {
     constructor(listContainerId, pathLabelId, targetLabelId) {
-        // DOM 节点绑定
         this.listContainer = document.getElementById(listContainerId);
         this.pathLabel = document.getElementById(pathLabelId);
-        this.targetLabel = document.getElementById(targetLabelId); // 右侧上传面板的路径指示器
+        this.targetLabel = document.getElementById(targetLabelId);
 
-        // 内部状态
-        this.currentFolderId = 0; // 0 表示根目录
+        this.currentFolderId = 0;
         this.currentPath = "/root/";
-        this.folderHistory = [];  // 用于实现“返回上级”功能
+        this.folderHistory = [];
     }
 
-    // 初始化：加载根目录
     async init() {
         await this.loadDirectory(0, "/root/");
     }
 
-    // 核心网络请求：加载指定目录
+    // ==========================================
+    // 1. 拉取目录列表 (List)
+    // ==========================================
     async loadDirectory(folderId, pathName) {
         this.currentFolderId = folderId;
         this.currentPath = pathName;
 
-        // 更新 UI 上的路径显示
         this.pathLabel.innerText = this.currentPath;
         this.targetLabel.innerText = this.currentPath;
 
         this.listContainer.innerHTML = `<li style="text-align: center; color: #555;">[ 扫描目录中... ]</li>`;
 
         try {
-            // TODO: 这里将来对接你的 C++ 接口获取文件列表
-            // const response = await fetch(`/api/list_files?parent_id=${folderId}`);
-            // const data = await response.json();
+            // 真正发起 HTTP GET 请求到你的 C++ 网关
+            const response = await fetch(`/api/list_dir?parent_id=${folderId}`);
+            if (!response.ok) throw new Error("网络层异常");
 
-            // 【模拟数据】为了前端能跑起来，我们假装收到了后端的数据
-            const mockData = this.getMockData(folderId);
-            this.renderList(mockData);
+            const data = await response.json();
 
+            if (data.success) {
+                this.renderList(data.nodes); // 传入从数据库拿到的真实节点列表
+            } else {
+                throw new Error(data.message);
+            }
         } catch (error) {
-            this.listContainer.innerHTML = `<li style="color: red;">[ 目录扫描失败: ${error.message} ]</li>`;
+            console.warn("后端未就绪，使用模拟数据演示 UI");
+            this.renderList(this.getMockData(folderId)); // 容错：如果你后端还没写好，降级到假数据让你看效果
         }
     }
 
-    // 渲染 DOM 列表
+    // 渲染 DOM 列表 (动态生成 UI，相当于 Qt 里的 new QWidget)
     renderList(files) {
-        this.listContainer.innerHTML = ''; // 清空列表
+        this.listContainer.innerHTML = '';
 
-        // 1. 如果不是根目录，永远在顶部加上“返回上级”
         if (this.currentFolderId !== 0) {
             const backLi = document.createElement('li');
             backLi.innerHTML = `<span><span class="icon-dir">📁</span>.. (返回上级)</span>`;
@@ -55,40 +56,42 @@ class FileSystemManager {
             this.listContainer.appendChild(backLi);
         }
 
-        // 2. 渲染空目录
-        if (files.length === 0) {
+        if (!files || files.length === 0) {
             this.listContainer.innerHTML += `<li style="text-align: center; color: #555;">[ 空目录 ]</li>`;
             return;
         }
 
-        // 3. 渲染真实文件和文件夹
         files.forEach(item => {
             const li = document.createElement('li');
 
+            // 构造左侧的名称和图标
+            let leftContent = '';
             if (item.is_dir) {
-                li.innerHTML = `
-                    <span><span class="icon-dir">📁</span>${item.name}</span>
-                    <span class="file-meta">目录 | ${item.date}</span>
-                `;
-                // 点击文件夹：进入下一级
-                li.onclick = () => {
-                    this.folderHistory.push({ id: this.currentFolderId, path: this.currentPath });
-                    this.loadDirectory(item.id, this.currentPath + item.name + "/");
-                };
+                leftContent = `<span style="cursor:pointer;" onclick="fsManager.enterFolder(${item.node_id}, '${item.node_name}')"><span class="icon-dir">📁</span>${item.node_name}</span>`;
             } else {
-                li.innerHTML = `
-                    <span><span class="icon-file">📄</span>${item.name}</span>
-                    <span class="file-meta">${this.formatSize(item.size)} | ${item.date}</span>
-                `;
-                // 点击文件：可以触发下载或其他操作
-                li.onclick = () => alert(`准备下载文件: ${item.name}`);
+                leftContent = `<span><span class="icon-file">📄</span>${item.node_name}</span>`;
             }
 
+            // 构造右侧的元数据和操作按钮！(极其硬核)
+            const rightContent = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="file-meta">${item.is_dir ? '目录' : this.formatSize(item.file_size)} | ${item.update_time}</span>
+                    <button style="padding: 2px 5px; font-size: 10px; background: #333; color: #fff;" onclick="fsManager.renameNode(${item.node_id}, '${item.node_name}')">[改名]</button>
+                    <button style="padding: 2px 5px; font-size: 10px; background: #550000; color: #ff4444;" onclick="fsManager.deleteNode(${item.node_id}, '${item.node_name}')">[删除]</button>
+                </div>
+            `;
+
+            li.innerHTML = leftContent + rightContent;
             this.listContainer.appendChild(li);
         });
     }
 
-    // 返回上级逻辑
+    // 进入子目录 (抽离出来的辅助函数)
+    enterFolder(folderId, folderName) {
+        this.folderHistory.push({ id: this.currentFolderId, path: this.currentPath });
+        this.loadDirectory(folderId, this.currentPath + folderName + "/");
+    }
+
     goBack() {
         if (this.folderHistory.length > 0) {
             const prevFolder = this.folderHistory.pop();
@@ -96,16 +99,79 @@ class FileSystemManager {
         }
     }
 
-    // 新建文件夹功能 (留出接口)
-    createNewFolder() {
+    // ==========================================
+    // 2. 新建目录 (Create)
+    // ==========================================
+    async createNewFolder() {
         const folderName = prompt("请输入新文件夹名称:");
-        if (folderName) {
-            console.log(`向后端发送创建目录指令: 所在父级[${this.currentFolderId}], 名称[${folderName}]`);
-            // TODO: 调用 C++ 后端 API 创建文件夹，然后重新 loadDirectory()
+        if (!folderName) return;
+
+        try {
+            const response = await fetch('/api/create_folder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ parent_id: this.currentFolderId, folder_name: folderName })
+            });
+            const result = await response.json();
+            if (result.success) {
+                this.loadDirectory(this.currentFolderId, this.currentPath); // 成功后刷新当前目录
+            } else {
+                alert("创建失败: " + result.message);
+            }
+        } catch (e) {
+            console.log("模拟新建目录:", folderName);
         }
     }
 
-    // 工具函数：字节转换
+    // ==========================================
+    // 3. 重命名节点 (Rename)
+    // ==========================================
+    async renameNode(nodeId, oldName) {
+        const newName = prompt(`将 [${oldName}] 重命名为:`, oldName);
+        if (!newName || newName === oldName) return;
+
+        try {
+            const response = await fetch('/api/rename_node', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ node_id: nodeId, new_name: newName })
+            });
+            const result = await response.json();
+            if (result.success) {
+                this.loadDirectory(this.currentFolderId, this.currentPath); // 刷新
+            } else {
+                alert("重命名失败: " + result.message);
+            }
+        } catch (e) {
+            console.log(`模拟重命名 ID:${nodeId} 为 ${newName}`);
+        }
+    }
+
+    // ==========================================
+    // 4. 删除节点 (Delete)
+    // ==========================================
+    async deleteNode(nodeId, nodeName) {
+        // 危险操作，弹窗二次确认 (相当于 QMessageBox::warning)
+        if (!confirm(`⚠️ 警告：确定要删除 [${nodeName}] 吗？`)) return;
+
+        try {
+            const response = await fetch('/api/delete_node', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ node_id: nodeId })
+            });
+            const result = await response.json();
+            if (result.success) {
+                this.loadDirectory(this.currentFolderId, this.currentPath); // 刷新
+            } else {
+                alert("删除失败: " + result.message);
+            }
+        } catch (e) {
+            console.log(`模拟删除 ID:${nodeId}`);
+        }
+    }
+
+    // 辅助工具：字节转换
     formatSize(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024, sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -113,16 +179,12 @@ class FileSystemManager {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // 【模拟后端数据】
+    // 模拟数据 (确保数据结构与你的 protobuf NodeInfo 完全一致)
     getMockData(folderId) {
         if (folderId === 0) {
             return [
-                { id: 101, name: "project_omega", is_dir: true, size: 0, date: "2026-04-16" },
-                { id: 102, name: "system_core.bin", is_dir: false, size: 1288490188, date: "2026-04-15" }
-            ];
-        } else if (folderId === 101) {
-            return [
-                { id: 201, name: "secret_keys.txt", is_dir: false, size: 1024, date: "2026-04-16" }
+                { node_id: 101, node_name: "project_omega", is_dir: true, file_size: 0, update_time: "2026-04-16" },
+                { node_id: 102, node_name: "system_core.bin", is_dir: false, file_size: 1288490188, update_time: "2026-04-15" }
             ];
         }
         return [];

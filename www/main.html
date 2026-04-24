@@ -6,48 +6,67 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>[ OMNI_BOX_SYS_TERMINAL ]</h1>
-
-    <div class="container">
-        <div class="panel file-system-panel">
-            <div class="path-bar">
-                <span>📍 当前路径: <span id="currentPathLabel">/root/</span></span>
-                <button id="btnNewFolder">+ 新建目录</button>
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-panel">
+            <h2>[ SYSTEM_AUTH ]</h2>
+            <div class="input-group">
+                <label>> USERNAME:</label>
+                <input type="text" id="loginUsername" placeholder="输入特权账号" autocomplete="off">
             </div>
-
-            <ul class="file-list" id="fileListContainer">
-                <li style="text-align: center; color: #555;">[ 系统初始化中... ]</li>
-            </ul>
+            <div class="input-group">
+                <label>> PASSWORD:</label>
+                <input type="password" id="loginPassword" placeholder="输入访问密钥">
+            </div>
+            <button id="btnLogin">⚡ AUTHENTICATE</button>
+            <p id="loginStatus" class="login-status">[ STANDBY ]</p>
         </div>
+    </div>
 
-        <div class="panel upload-panel">
-            <h3 class="panel-title">UPLINK_CONSOLE</h3>
-            <p class="panel-meta">
-                > TARGET_DIR: <span id="uploadTargetLabel">/root/</span><br>
-                > PROTOCOL: CHUNKED_RAPID_HASH
-            </p>
+    <div id="mainApp" style="display: none;">
+        <h1>[ OMNI_BOX_SYS_TERMINAL ]</h1>
 
-            <div class="file-drop-zone">
-                <input type="file" id="fileInput" class="custom-file-input">
+        <div class="container">
+            <div class="panel file-system-panel">
+                <div class="path-bar">
+                    <span>📍 当前路径: <span id="currentPathLabel">/root/</span></span>
+                    <button id="btnNewFolder">+ 新建目录</button>
+                </div>
+
+                <ul class="file-list" id="fileListContainer">
+                    <li style="text-align: center; color: #555;">[ 系统初始化中... ]</li>
+                </ul>
             </div>
 
-            <button id="btnStartUpload">⚡ INITIATE_TRANSFER</button>
+            <div class="panel upload-panel">
+                <h3 class="panel-title">UPLINK_CONSOLE</h3>
+                <p class="panel-meta">
+                    > TARGET_DIR: <span id="uploadTargetLabel">/root/</span><br>
+                    > PROTOCOL: CHUNKED_RAPID_HASH
+                </p>
 
-            <h4 id="statusText" class="status-text">[ STANDBY ]</h4>
+                <div class="file-drop-zone">
+                    <input type="file" id="fileInput" class="custom-file-input">
+                </div>
 
-            <div class="progress-container">
-                <div id="progressBar"></div>
-            </div>
+                <button id="btnStartUpload">⚡ INITIATE_TRANSFER</button>
 
-            <div class="transfer-stats">
-                <span id="timeText">T-PLUS: 0.0s</span>
-                <span id="speedText">BANDWIDTH: -- MB/s</span>
+                <h4 id="statusText" class="status-text">[ STANDBY ]</h4>
+
+                <div class="progress-container">
+                    <div id="progressBar"></div>
+                </div>
+
+                <div class="transfer-stats">
+                    <span id="timeText">T-PLUS: 0.0s</span>
+                    <span id="speedText">BANDWIDTH: -- MB/s</span>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="/js/OmniUploader.js"></script>
     <script src="/js/FileSystemManager.js"></script>
+    <script src="/js/AuthManager.js"></script>
     <script src="/js/app.js"></script>
 </body>
 </html>

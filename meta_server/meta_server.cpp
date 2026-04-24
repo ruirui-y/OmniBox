@@ -1,7 +1,7 @@
 #include <iostream>
 #include <mymuduo/db/ConnectionPool.h>
 #include "RPCServer.h"
-#include "MetaServiceImpl.cpp"
+#include "MetaServiceImpl.h"
 
 int main(int argc, char** argv)
 {

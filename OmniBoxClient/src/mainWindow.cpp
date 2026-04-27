@@ -19,12 +19,21 @@ mainWindow::mainWindow(QWidget *parent)
 {
     ui.setupUi(this);
 
+    // 隐藏系统标题栏，开启无边框模式
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinMaxButtonsHint);
+
     m_pages = new QStackedWidget(this);
     setCentralWidget(m_pages);
 
     BindSlots();
 
     _LoginWidget = new LoginWidget(this);
+    // 绑定登录页标题栏的信号
+    TitleBar* loginTitle = _LoginWidget->GetTitle();
+    if (loginTitle) {
+        connect(loginTitle, &TitleBar::minimizeRequested, this, &QWidget::showMinimized);
+        connect(loginTitle, &TitleBar::closeRequested, this, &mainWindow::close);
+    }
     
     m_pages->addWidget(_LoginWidget);
     m_pages->setCurrentWidget(_LoginWidget);
@@ -66,10 +75,6 @@ void mainWindow::SlotSwitchToLoginWidget()
         return;
     }
 
-    // 有边框
-    SetFrameless(false);
-    setAutoFillBackground(true);                                // 登录页一般不需要透明背景
-
     // 清除配置文件
     JsonTool::Instance()->clearJsonFile(LoginConfigPath);
 
@@ -84,12 +89,12 @@ void mainWindow::SlotSwitchToLoginWidget()
     // 清空用户数据
     UserMgr::Instance()->ClearUser();
 
+    setFixedSize(_LoginWidget->size());
+
     m_pages->setCurrentWidget(_LoginWidget);
     emit _LoginWidget->sig_connect_tcp();
 
     _LoginWidget->EnableBtn(true);
-
-    setFixedSize(_LoginWidget->size());
 
     qDebug() << "[mainWindow] Switch to LoginWidget";
 }

@@ -18,15 +18,19 @@
 #include "JsonTool.h"
 #include "CinemaMessageBox.h"
 #include "ThreadPool.h"
+#include "TitleBar.h"
 
 
 LoginWidget::LoginWidget(QWidget* parent)
 	: QWidget(parent), _Parent(parent)
 {
-	setFixedSize(1100, 700);
+	setFixedSize(600, 500);
 
-	setAttribute(Qt::WA_StyledBackground, true);
-	setObjectName("LoginWidget");
+	// 同步无边框与透明属性
+	setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinMaxButtonsHint);
+	setAttribute(Qt::WA_TranslucentBackground);
+	setAttribute(Qt::WA_OpaquePaintEvent);
+
 	BuildUI();
 
 	hide();
@@ -44,72 +48,67 @@ LoginWidget::~LoginWidget()
 
 void LoginWidget::BuildUI()
 {
-	// 中央面板
+	// 1. 根布局
+	auto* root = new QVBoxLayout(this);
+	root->setContentsMargins(0, 0, 0, 0);
+	root->setSpacing(0);
+
+	// 2. 顶部栏复用
+	m_title = new TitleBar(this);
+	m_title->SetLogo(":/demand/Images/Login.jpg");
+	root->addWidget(m_title);
+
+	// 3. 中央容器
 	m_panel = new QWidget(this);
-	m_panel->setObjectName("loginPanel");                                       // 绑定专属面板 ID
-	m_panel->setMinimumWidth(560);
+	m_panel->setObjectName("loginPanel");
+	m_panel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-	// 阴影
-	auto* shadow = new QGraphicsDropShadowEffect(this);
-	shadow->setOffset(0, 8);
-	shadow->setBlurRadius(32);
-	shadow->setColor(QColor(0, 0, 0, 150));
-	m_panel->setGraphicsEffect(shadow);
+	// 表单内容布局
+	auto* formLayout = new QVBoxLayout(m_panel);
+	formLayout->setContentsMargins(60, 40, 60, 60);
+	formLayout->setSpacing(20);
 
-	// 内容 (Logo)
-	m_logo = new QLabel(m_panel);
-	m_logo->setObjectName("loginLogo");                                         // 绑定 Logo ID
-	m_logo->setMinimumHeight(96);
-	m_logo->setFixedWidth(300);
-
-	m_userLbl = new QLabel(QStringLiteral("账号"), m_panel);
+	// 账号部分
+	m_userLbl = new QLabel(u8"账号", m_panel);
 	m_userEdit = new QLineEdit(m_panel);
-	m_userEdit->setObjectName("loginInput");                                    // 统一输入框 ID
-	m_userEdit->setPlaceholderText(QStringLiteral("请输入账号"));
+	m_userEdit->setObjectName("loginInput");
+	m_userEdit->setPlaceholderText(u8"请输入账号");
 
-	m_passLbl = new QLabel(QStringLiteral("密码"), m_panel);
+	// 密码部分
+	m_passLbl = new QLabel(u8"访问密码", m_panel);
 	m_passEdit = new QLineEdit(m_panel);
-	m_passEdit->setObjectName("loginInput");                                    // 统一输入框 ID
-	m_passEdit->setPlaceholderText(QStringLiteral("请输入密码"));
-	// m_passEdit->setEchoMode(QLineEdit::Password);
+	m_passEdit->setObjectName("loginInput");
+	m_passEdit->setPlaceholderText(u8"请输入密码");
+	m_passEdit->setEchoMode(QLineEdit::Password);
 
-	m_remember = new QCheckBox(QStringLiteral("记住密码"), m_panel);
-	m_remember->setObjectName("loginCheckBox");                                 // 绑定多选框 ID
-	m_remember->setChecked(true);
+	// 辅助项
+	m_remember = new QCheckBox(u8"记住登录状态", m_panel);
+	m_remember->setObjectName("loginCheckBox");
 
-	m_loginBtn = new QPushButton(QStringLiteral("登 录"), m_panel);
-	m_loginBtn->setObjectName("loginSubmitBtn");                                // 👑 核心登录大按钮专属 ID
+	m_loginBtn = new QPushButton(u8"登录", m_panel);
+	m_loginBtn->setObjectName("loginSubmitBtn");
 	m_loginBtn->setCursor(Qt::PointingHandCursor);
-	m_loginBtn->setFixedHeight(54);
+	m_loginBtn->setFixedHeight(50);
 
-	// 布局（面板）
-	auto* form = new QVBoxLayout(m_panel);
-	form->setContentsMargins(32, 32, 32, 32);
-	form->setSpacing(16);
-	form->addWidget(m_logo, 0, Qt::AlignHCenter);
-
+	// 封装输入框布局的 Lambda
 	auto addField = [&](QLabel* lbl, QLineEdit* edit) {
-		lbl->setObjectName("fieldLabel");                                       // 标题 Label 统一 ID
-		auto* v = new QVBoxLayout();
-		v->setSpacing(8);
-		v->addWidget(lbl);
-		v->addWidget(edit);
-		form->addLayout(v);
+		lbl->setObjectName("fieldLabel");
+		lbl->setContentsMargins(2, 0, 0, 0);
+		formLayout->addWidget(lbl);
+		formLayout->addWidget(edit);
+		formLayout->addSpacing(5);
 		};
+
+	// 组装
+	formLayout->addStretch(1);
 	addField(m_userLbl, m_userEdit);
 	addField(m_passLbl, m_passEdit);
+	formLayout->addWidget(m_remember);
+	formLayout->addSpacing(10);
+	formLayout->addWidget(m_loginBtn);
+	formLayout->addStretch(2);
 
-	form->addWidget(m_remember);
-	form->addSpacing(4);
-	form->addWidget(m_loginBtn);
-
-	// 外层布局：让面板居中
-	auto* outer = new QHBoxLayout(this);
-	outer->setContentsMargins(48, 48, 48, 48);
-	outer->addStretch();
-	outer->addWidget(m_panel, 0, Qt::AlignVCenter);
-	outer->addStretch();
-	setLayout(outer);
+	root->addWidget(m_panel, 1);
 }
 
 void LoginWidget::BindSlots()

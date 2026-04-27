@@ -12,6 +12,7 @@ class QLineEdit;
 class QPushButton;
 class QPixmap;
 class QFont;
+class TitleBar;
 
 class LoginWidget : public QWidget
 {
@@ -24,6 +25,7 @@ public:
 public:
 	bool EnableBtn(bool);
 	void ClearInputs();																				// 切换回登录界面清空登录残留信息
+	TitleBar* GetTitle(){ return m_title; }
 
 private:
 	void BindSlots();
@@ -46,6 +48,7 @@ private:
 	QWidget* _Parent;																				// 父窗口
 
 private:
+	TitleBar* m_title = nullptr;																// 标题栏
 	QWidget* m_panel = nullptr;																		// 中央面板
 	QLabel* m_logo = nullptr;
 

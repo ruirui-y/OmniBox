@@ -13,19 +13,11 @@
 
 // 定义消息处理函数签名：入参是 (当前物理连接, 尚未反序列化的 Protobuf 纯二进制流)
 using MsgHandler = std::function<void(const std::shared_ptr<TcpConnection>&, const std::string&)>;
-using HttpHandler = std::function<void(
-    const std::shared_ptr<TcpConnection>& conn,
-    Buffer* buffer,
-    const std::string& method,
-    const std::string& uri,
-    const std::string& headers,
-    size_t header_end_pos
-    )>;
 
 class GatewayTcpServer
 {
 public:
-	GatewayTcpServer(EventLoop* loop, const std::string& ip, uint16_t port);
+    GatewayTcpServer(EventLoop* loop, const std::string& ip, uint16_t port);
 
     void Start(int thread_num);                                                                                         // 启动服务
     bool PushMessageToClient(int32_t uid, uint32_t msg_type, const std::string& content);                               // 提供给内部 RPC 调用的核心接口：精准推送消息给某个物理客户端
@@ -34,41 +26,11 @@ private:
     void OnConnection(const std::shared_ptr<TcpConnection>& conn);                                                      // 底层网络回调
     void OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer);
 
-private:    
+private:
     void RegisterHandler(uint32_t msg_id, MsgHandler handler);                                                          // 注册路由的回调函数
-    void RegisterHttpHandler();                                                                                         // 注册HTTP路由的回调函数
-
-    // 处理HTTP请求
-    void HandleHttpRequest(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer);
-    void HandleStaticResource(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理静态资源请求
-
-    // 处理登录服务相关操作
-    void HandleLogin(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理登录请求
-    void HandleHeartbeat(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理心跳请求
-    
-    // 处理文件传输服务相关操作
-    void HandleUploadChunk(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理上传文件块
-    void HandleCheckFile(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 处理检查文件是否存在
-
-    // 新增的 MetaService  文件视图相关操作
-    void HandleListDirectory(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, 
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 获取文件列表
-    void HandleCreateFolder(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 新建目录
-    void HandleDeleteNode(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method,
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 删除节点(包括目录和普通文件)
-    void HandleRenameNode(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, 
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 重命名节点(包括目录和普通文件)
-    void HandleMoveNode(const std::shared_ptr<TcpConnection>& conn, Buffer* buffer, const std::string& method, 
-        const std::string& uri, const std::string& headers, size_t header_end_pos);                                     // 移动节点(包括目录和普通文件)
 
     // 具体的业务处理函数 (登录)
-    void HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const std::string& pb_data);                        
+    void HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const std::string& pb_data);
 
     void SendToConn(const std::shared_ptr<TcpConnection>& conn, uint32_t msg_id, const std::string& pb_data);           // 发送数据
 private:
@@ -83,7 +45,6 @@ private:
     std::mutex session_mutex_;
     std::unordered_map<int32_t, std::shared_ptr<TcpConnection>> user_sessions_;
     std::unordered_map<uint32_t, MsgHandler> msg_dispatcher_;                                                           // 事件分发
-    std::unordered_map<std::string, HttpHandler> router_;                                                               // http事件分片
 
     // 网关全局共享的rpc通道
     std::shared_ptr<MyChannel> login_channel_;

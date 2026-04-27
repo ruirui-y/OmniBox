@@ -14,6 +14,7 @@ Saved/
 *.sdf
 *.VC.db
 *.VC.opendb
+Log_admin.txt
 
 # --- C++ 编译产生的巨型文件 (针对你的 190GB 报错) ---
 *.pdb

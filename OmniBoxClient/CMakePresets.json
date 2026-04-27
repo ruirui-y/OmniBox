@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "hidden": true,
+      "name": "Qt",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{QTDIR}"
+      },
+      "vendor": {
+        "qt-project.org/Qt": {
+          "checksum": "wVa86FgEkvdCTVp1/nxvrkaemJc="
+        }
+      }
+    },
+    {
+      "name": "x64-Debug-Vcpkg",
+      "displayName": "x64 Debug (Vcpkg + Qt)",
+      "inherits": "Qt",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "toolchainFile": "D:/YJJ/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    }
+  ],
+  "vendor": {
+    "qt-project.org/Presets": {
+      "checksum": "5G78gI0QSpSDFNe08hIZMdk0Nl4="
+    }
+  }
+}

@@ -1,0 +1,377 @@
+﻿/* =========================================================================================
+   💡 核心样式表 (stylesheet.qss)
+   规范：使用“父类名”或“对象名(#)”进行作用域隔离，坚决防止不同界面的控件样式互相污染！
+   ========================================================================================= */
+
+/* ---------------------------------------------------------
+[1. 全局配置与字体重置]
+--------------------------------------------------------- */
+* {
+    /* 🔴 强制使用更优雅的微软雅黑，增大行高 */
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 14px;
+    color: white;
+    outline: none;
+}
+
+/* ============================================================================== */
+/* 全局自定义弹窗系统 (CinemaDialogBase / CinemaMessageBox)                          */
+/* ============================================================================== */
+
+/* ---------------- 1. 弹窗底板与标题栏 ---------------- */
+#CinemaDialogBase {                                                 /* 弹窗最底层主面板 */
+    background-color: #1A1F29;                                      /* 采用比主窗口稍亮的深灰蓝 */
+    border: 1px solid rgba(0, 195, 255, 0.3);                       /* 外围包裹一圈微弱的科技蓝边框 */
+}
+
+#DialogTitleBar {                                                   /* 弹窗顶部的拖拽标题栏 */
+    background-color: #12161E;                                      /* 深邃暗色压住阵脚 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);             /* 底部微弱分割线 */
+}
+
+#DialogTitleLabel {                                                 /* 标题文字 */
+    color: #E0E6ED;                                                 /* 标准灰白文字 */
+    font-weight: bold;                                              /* 标题加粗 */
+    font-size: 14px;                                                /* 适中字号 */
+}
+
+#DialogBtnClose {                                                   /* 标题栏关闭按钮 */
+    background: transparent;                                        /* 默认透明 */
+    border: none;                                                   /* 无边框 */
+    color: #8A95A5;                                                 /* 默认暗灰蓝色 */
+    font-size: 16px;                                                /* 叉号稍微放大 */
+    font-weight: bold;                                              /* 叉号加粗 */
+}
+
+#DialogBtnClose:hover {                                             /* 关闭按钮悬浮态 */
+    background-color: #E81123;                                      /* 瞬间变身微软警示红底 */
+    color: #FFFFFF;                                                 /* 叉号纯白高亮 */
+}
+
+/* ---------------- 2. 弹窗内容文字 ---------------- */
+#CinemaMsgLabel {                                                   /* MessageBox 中间的提示文字 */
+    color: #FFFFFF;                                                 /* 纯白文字确保绝对清晰 */
+    font-size: 16px;                                                /* 字体稍大，易于阅读 */
+    font-weight: bold;                                              /* 醒目加粗 */
+    padding: 10px;                                                  /* 增加文字周围的呼吸感 */
+}
+
+/* ---------------- 3. 底部交互按钮组 (含询问框的双按钮) ---------------- */
+
+#btnCinemaInfo, 
+#btnCinemaWarning, 
+#btnCinemaError {                                                   /* 实心按钮的基础通用样式 */
+    border: none;                                                   /* 移除系统边框 */
+    border-radius: 6px;                                             /* 工业级微圆角 */
+    color: #FFFFFF;                                                 /* 按钮文字纯白 */
+    font-weight: bold;                                              /* 按钮文字加粗 */
+    font-size: 14px;                                                /* 适中字号 */
+}
+
+/* 🔵 Info (常规信息) - 科技蓝风格 */
+#btnCinemaInfo {
+    background-color: #0088CC;                                      /* 沉稳的深科技蓝 */
+}
+#btnCinemaInfo:hover { background-color: #00C3FF; }                 /* 悬浮瞬间点亮为高亮科技蓝 */
+#btnCinemaInfo:pressed { background-color: #0077B3; }               /* 按下时颜色加深 */
+
+
+/* 🟠 Warning (警告信息) - 影院金风格 */
+#btnCinemaWarning {
+    background-color: #D48806;                                      /* 沉稳的暗影院金 */
+}
+#btnCinemaWarning:hover { background-color: #FFB300; }              /* 悬浮瞬间提亮为高亮金橘色 */
+#btnCinemaWarning:pressed { background-color: #AD6800; }            /* 按下时颜色加深 */
+
+
+/* 🔴 Error / Confirm (错误与高危操作确认) - 警示红风格 */
+#btnCinemaError {
+    background-color: #C50F1F;                                      /* 沉稳的暗警示红 */
+}
+#btnCinemaError:hover { background-color: #E81123; }                /* 悬浮瞬间提亮为微软警示红 */
+#btnCinemaError:pressed { background-color: #A4000F; }              /* 按下时颜色加深 */
+
+
+/* ⚪ Cancel (取消按钮) - 暗色低调镂空风格 (用于 Question 弹窗) */
+#btnCinemaCancel {
+    background: transparent;                                        /* 透明底色，极大降低视觉权重 */
+    border: 1px solid rgba(255, 255, 255, 0.2);                     /* 极其微弱的灰色边框 */
+    border-radius: 6px;                                             /* 统一工业微圆角 */
+    color: #8A95A5;                                                 /* 暗淡的灰蓝色文字 */
+    font-weight: bold;                                              /* 字体加粗 */
+    font-size: 14px;                                                /* 适中字号 */
+}
+#btnCinemaCancel:hover {                                            /* 取消按钮悬浮态 */
+    background-color: rgba(255, 255, 255, 0.05);                    /* 悬浮时微亮提示可点击 */
+    border-color: rgba(255, 255, 255, 0.4);                         /* 边框泛白提高辨识度 */
+    color: #FFFFFF;                                                 /* 文字纯白高亮 */
+}
+#btnCinemaCancel:pressed {                                          /* 取消按钮按下态 */
+    background-color: rgba(0, 0, 0, 0.2);                           /* 产生下陷的物理阴影感 */
+}
+
+
+/* ============================================================================== */
+/* 账号管理弹窗 (AccountWidget) 专属样式                                    */
+/* ============================================================================== */
+
+/* ============================================================================== */
+/* 弹窗全局背景板 (#accountPanel)                                         */
+/* ============================================================================== */
+#accountPanel {                                                                 /* 弹窗核心底板 */
+    background-color: #1A1F29;                                                  /* 深灰蓝主底色 */
+    border: 1px solid rgba(255, 255, 255, 0.1);                                 /* 极其微弱的玻璃边缘光 */
+    border-radius: 10px;                                                        /* 现代感大圆角 */
+}
+
+/* ============================================================================== */
+/* 表单文本标签 (#keyLabel / #valueLabel)                                 */
+/* ============================================================================== */
+QLabel#keyLabel {                                                               /* 表单键 (如：当前在线) */
+    color: #8A95A5;                                                             /* 暗灰蓝色，降低层级 */
+    font-size: 16px;                                                            /* 常规说明字号 */
+    font-weight: bold;                                                          /* 基础加粗 */
+}
+
+QLabel#valueLabel {                                                             /* 表单值 (如：玩家账号名) */
+    color: #00C3FF;                                                             /* 👑 科技蓝高亮玩家账号 */
+    font-size: 18px;                                                            /* 字号略大，突出数据 */
+    font-weight: bold;                                                          /* 基础加粗 */
+}
+
+/* ============================================================================== */
+/* 危险操作大按钮 (#switchBtn)                                            */
+/* ============================================================================== */
+QPushButton#switchBtn {                                                         /* 切换/退出账号按钮 */
+    background-color: rgba(230, 57, 70, 0.08);                                  /* 静默态为幽灵警告红 */
+    color: #E63946;                                                             /* 红色文字 */
+    border: 1px solid rgba(230, 57, 70, 0.3);                                   /* 红色半透边框 */
+    border-radius: 6px;                                                         /* 按钮小圆角 */
+    font-family: "Microsoft YaHei", Arial, sans-serif;                          /* 强行指定字体 */
+    font-size: 14px;                                                            /* 适中字号 */
+    font-weight: bold;                                                          /* 字体加粗 */
+    padding: 10px 0px;                                                          /* 撑大上下点击区域 */
+}
+
+QPushButton#switchBtn:hover {                                                   /* 按钮悬浮态 */
+    background-color: #E63946;                                                  /* 悬浮瞬间填满工业红 */
+    color: #FFFFFF;                                                             /* 文字变纯白 */
+}
+
+QPushButton#switchBtn:pressed {                                                 /* 按钮物理按下态 */
+    background-color: #B32431;                                                  /* 物理按下颜色加深 */
+    padding-top: 2px;                                                           /* 真实下陷物理反馈 */
+}
+
+
+
+/* ============================================================================== */
+/* 模块：LoginWidget - 登录界面专属样式 (无图纯向量渲染版)                           */
+/* ============================================================================== */
+
+/* ---------------------------------------------------------
+   [1. 登录底板与容器]
+--------------------------------------------------------- */
+#LoginWidget { 
+    color: #EAF2FF; 
+    border-image: url(:/MiNi/Images/MiNiWorld/Login/Background.png);               /* 自动拉伸铺满全屏 */
+}
+
+#LoginWidget #loginPanel { 
+    border-image: none;                                                             /* 防止继承父级背景图 */
+    background: rgba(0, 0, 0, 180);                                                 /* 高级半透明磨砂黑面板 */
+    border-radius: 16px;                                                            /* 现代圆角 */
+}
+
+#LoginWidget #loginLogo { 
+    margin-top: 8px; 
+    margin-bottom: 8px; 
+    image: url(:/MiNi/Images/MiNiWorld/Login/Logo.png);                             /* Logo独立居中 */
+}
+
+#LoginWidget #fieldLabel { 
+    color: #CBE1FF;                                                                 /* 浅蓝色标题 */
+    font-size: 14px; 
+    font-weight: bold;                                                              /* 强行加粗字体 */
+}
+
+/* ---------------------------------------------------------
+   [2. 通用基础控件层 (在 Login 作用域内通用)]
+--------------------------------------------------------- */
+#LoginWidget QLineEdit#loginInput { 
+    height: 44px; 
+    padding: 0 14px;
+    /* 👑 绝杀修复 1：必须使用 background-color 而不是 background，防止盖住光标 */
+    background-color: rgba(255, 255, 255, 0.1);                                     /* 极简玻璃质感背景 */
+    border: 1px solid rgba(255, 255, 255, 0.15);                                    /* 极细微边框 */
+    border-radius: 8px;                                                             /* 适中圆角 */
+    color: #FFFFFF;                                                                 /* 输入的白字与白光标 */
+    font-weight: bold;                                                              /* 输入字体加粗 */
+    selection-background-color: #00C3FF;                                            /* 鼠标拖拽选中文本的底色 */
+    selection-color: #FFFFFF;                                                       /* 👑 绝杀修复 2：选中文本时的反色文字 */
+}
+
+#LoginWidget QLineEdit#loginInput:focus { 
+    border: 1px solid #00C3FF;                                                      /* 焦点科技蓝 */
+    
+    /* 光标颜色 = 文字颜色 XOR 背景底色*/
+    /* 👑 绝杀修复 3：终结光标变异！改用不透明的纯实色底板，彻底阻断背景图片的像素透视 */
+    /* 当白字(#FFFFFF) 异或 极暗深蓝(#0F1319) 时，算出的光标将是一个非常稳定的“暖白色” */
+    background-color: #0F1319;                                                      
+    color: #FFFFFF;
+}
+
+#LoginWidget QCheckBox#loginCheckBox { 
+    spacing: 8px; 
+    color: #A9A9A9; 
+    font-weight: bold;
+}
+
+#LoginWidget QCheckBox#loginCheckBox::indicator {
+    width: 18px; 
+    height: 18px; 
+    border-radius: 9px;                                                             /* 圆形多选框 */
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+#LoginWidget QCheckBox#loginCheckBox::indicator:checked {
+    /* 既然抛弃图片，我们可以用系统底层的勾或者 QSS 直接上色 */
+    background: #31C27C;                                                            /* 极客绿填充 */
+    border: 1px solid #31C27C;
+    image: url(:/MiNi/Images/MiNiWorld/Login/BoxCheck.png);                        /* 如果你有单独的勾图可以保留，没有的话删掉这行也有纯绿底色 */
+}
+
+/* ---------------------------------------------------------
+   [3. 按钮层：通用大基底 + 专属 ID 覆盖 (极客绿)]
+--------------------------------------------------------- */
+/* 基础按钮：半透明毛玻璃质感 (方便以后加别的辅助按钮) */
+#LoginWidget QPushButton {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: bold;
+    color: white;
+}
+
+#LoginWidget QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* 👑 核心覆写：登录大按钮专属 (纯色向量极客绿，彻底干掉旧贴图) */
+#LoginWidget QPushButton#loginSubmitBtn {
+    background-color: #31C27C;                                                      /* 主基调：高亮极客绿 */
+    border: none;                                                                   /* 移除基础边框 */
+    color: white;                                                                   /* 纯白文字 */
+    font-size: 20px;                                                                /* 硕大字号 */
+    font-weight: 900;                                                               /* 极限加粗 */
+    border-radius: 10px;                                                            /* 保持大圆角 */
+}
+
+#LoginWidget QPushButton#loginSubmitBtn:hover {
+    background-color: #3AD589;                                                      /* 悬浮时稍稍提亮 */
+}
+
+#LoginWidget QPushButton#loginSubmitBtn:pressed {
+    background-color: #29A368;                                                      /* 按下时加深颜色 */
+    padding-top: 4px;                                                               /* 产生向下按压的物理视觉反馈 */
+}
+
+
+
+/* ============================================================================== */
+/* 中控窗口全局底板兜底                                                                     */
+/* ============================================================================== */
+ControlHubWindow {                                                  /* 顶层主窗体 */
+    font-weight: bold;                                              /* 字体加粗 */
+    background-color: #0B0E14;                                      /* 极暗的黑蓝色兜底 */
+    color: #E0E6ED;                                                 /* 全局标准文字色 */
+}
+
+/* ============================================================================== */
+/* [1] 顶部标题栏 (Title Bar) - 控制全局的“天花板”                                  */
+/* ============================================================================== */
+#MainTitleBar {                                                     /* 标题栏容器 */
+    background-color: #12161E;                                      /* 极暗的深邃蓝灰 */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.8);                    /* 底部强阴影分割 */
+}
+
+#TitleAccountBtn {                                                  /* 标题栏账号按钮 */
+    border: none;                                                   /* 移除边框 */
+    background: transparent;                                        /* 背景透明 */
+    color: #8A95A5;                                                 /* 默认暗灰蓝色 */
+    font-size: 20px;                                                /* 字体放大 */
+    font-weight: 700;                                               /* 账号加粗突显 */
+    text-align: left;                                               /* 靠左对齐 */
+    padding-left: 20px;                                             /* 文本左侧留白 */
+}
+
+#TitleAccountBtn:hover {                                            /* 账号按钮悬浮 */
+    color: #FFFFFF;                                                 /* 悬浮发白高亮 */
+}
+
+#TitleAccountBtn:pressed {                                          /* 账号按钮按下 */
+    color: #00C3FF;                                                 /* 激活科技蓝 */
+}
+
+#TitleMinBtn, #TitleCloseBtn {                                      /* 右上角系统控制按钮 */
+    border: none;                                                   /* 移除边框 */
+    background: transparent;                                        /* 默认透明 */
+    border-radius: 6px;                                             /* 微圆角更现代 */
+}
+
+#TitleMinBtn:hover {                                                /* 最小化悬浮 */
+    background: rgba(255, 255, 255, 0.08);                          /* 浅浅的白底反馈 */
+}
+
+#TitleCloseBtn:hover {                                              /* 关闭按钮悬浮 */
+    background: #E81123;                                            /* 微软标准警示红 */
+}
+
+#TitleCloseBtn:pressed {                                            /* 关闭按钮按下 */
+    background: #B00A1A;                                            /* 更深的按下红 */
+}
+
+
+/* ============================================================================== */
+/* [2] 左侧导航栏 (Left Sidebar) - 系统的“中枢神经”                                 */
+/* ============================================================================== */
+#LeftSidebar {                                                      /* 左侧列表容器 */
+    background-color: #161A23;                                      /* 藏青色导航底板 */
+    border: none;                                                   /* 去除边框 */
+}
+
+GameItem {                                                          /* 侧边栏菜单项 */
+    background-color: transparent;                                  /* 默认背景透明 */
+    color: #8A95A5;                                                 /* 未选中为暗蓝灰 */
+    font-size: 16px;                                                /* 导航字体大小 */
+    font-weight: 500;                                               /* 中等加粗 */
+    border: none;                                                   /* 无边框 */
+    text-align: left;                                               /* 靠左对齐 */
+    padding-left: 20px;                                             /* 图标文本左边距 */
+    border-left: 4px solid transparent;                             /* 预留物理指示条 */
+}
+
+GameItem:hover {                                                    /* 菜单项悬浮 */
+    background-color: rgba(255, 255, 255, 0.03);                    /* 微弱的高亮反馈 */
+    color: #FFFFFF;                                                 /* 文字提亮 */
+}
+
+GameItem:checked {                                                  /* 菜单项选中(焦点) */
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                stop:0 rgba(0, 195, 255, 0.15),
+                stop:1 transparent);                                /* 科技蓝渐变扫光 */
+    color: #00C3FF;                                                 /* 文本变为科技蓝 */
+    border-left: 4px solid #00C3FF;                                 /* 左侧亮起物理推杆 */
+    font-weight: 700;                                               /* 选中字体加粗 */
+}
+
+
+/* ============================================================================== */
+/* [3] 右侧堆栈内容区 (Right Stacked Content) - 核心展示的“大荧幕”                    */
+/* ============================================================================== */
+MovieWidget, GameWidget, SettingWidget {                            /* 右侧三大核心界面 */
+    background-color: #1A1F29;                                      /* 最亮的深灰蓝底色 */
+}

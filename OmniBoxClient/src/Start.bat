@@ -1,0 +1,1 @@
+start /MIN "" "./Pack/MiNiWorld/Windows/MiNiWorld.exe"

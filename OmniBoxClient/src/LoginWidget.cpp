@@ -74,18 +74,49 @@ void LoginWidget::BuildUI()
 	m_userEdit->setObjectName("loginInput");
 	m_userEdit->setPlaceholderText(u8"请输入账号");
 
-	// 密码部分
+	// ==========================================================
+	// 密码部分 (新增了可视化按钮)
+	// ==========================================================
 	m_passLbl = new QLabel(u8"访问密码", m_panel);
 	m_passEdit = new QLineEdit(m_panel);
 	m_passEdit->setObjectName("loginInput");
 	m_passEdit->setPlaceholderText(u8"请输入密码");
 	m_passEdit->setEchoMode(QLineEdit::Password);
 
+	// 1. 实例化眼睛按钮 (父对象必须是 m_passEdit)
+	auto* eyeBtn = new QPushButton(m_passEdit);
+	eyeBtn->setObjectName("PasswordEyeBtn");
+	eyeBtn->setCursor(Qt::PointingHandCursor);
+	eyeBtn->setFixedSize(24, 24);
+	eyeBtn->setToolTip(u8"显示密码");
+	eyeBtn->setProperty("isOpen", false);                                           // 自定义属性：配合 QSS 切换图标
+
+	// 2. 将按钮固定在输入框的最右侧
+	auto* passLayout = new QHBoxLayout(m_passEdit);
+	passLayout->setContentsMargins(0, 0, 10, 0);                                    // 右侧留 10px 边距
+	passLayout->addStretch();                                                       // 将按钮挤到右边
+	passLayout->addWidget(eyeBtn);
+
+	// 3. 点击切换可见性逻辑
+	connect(eyeBtn, &QPushButton::clicked, this, [=]() {
+		bool isPassword = (m_passEdit->echoMode() == QLineEdit::Password);
+
+		// 切换输入框模式
+		m_passEdit->setEchoMode(isPassword ? QLineEdit::Normal : QLineEdit::Password);
+		eyeBtn->setToolTip(isPassword ? u8"隐藏密码" : u8"显示密码");
+
+		// 切换 QSS 状态 (动态属性)
+		eyeBtn->setProperty("isOpen", isPassword);
+		eyeBtn->style()->unpolish(eyeBtn);
+		eyeBtn->style()->polish(eyeBtn);
+		});
+	// ==========================================================
+
 	// 辅助项
 	m_remember = new QCheckBox(u8"记住登录状态", m_panel);
 	m_remember->setObjectName("loginCheckBox");
 
-	m_loginBtn = new QPushButton(u8"登录", m_panel);
+	m_loginBtn = new QPushButton(u8"登 录", m_panel);
 	m_loginBtn->setObjectName("loginSubmitBtn");
 	m_loginBtn->setCursor(Qt::PointingHandCursor);
 	m_loginBtn->setFixedHeight(50);
@@ -297,7 +328,7 @@ void LoginWidget::slot_login_failed(int errCode)
 
 	_Parent->show();
 
-	qDebug() << QString::fromLocal8Bit("[LoginWidget] 登录失败, 错误码:") << errCode << " 描述:" << result;
+	qDebug() << QString::fromLocal8Bit("[LoginWidget] 登录失败, 错误码:") << errCode << u8" 描述:" << result;
 
 	// 恢复登录按钮状态
 	EnableBtn(true);

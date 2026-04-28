@@ -10,9 +10,10 @@
 #include <functional>
 #include <mymuduo/base/ThreadPool.h>
 #include "MyChannel.h"
+#include "common.pb.h"
 
 // 定义消息处理函数签名：入参是 (当前物理连接, 尚未反序列化的 Protobuf 纯二进制流)
-using MsgHandler = std::function<void(const std::shared_ptr<TcpConnection>&, const std::string&)>;
+using MsgHandler = std::function<void(const std::shared_ptr<TcpConnection>&, const omnibox::PacketHeader&, const std::string&)>;
 
 class GatewayTcpServer
 {
@@ -30,9 +31,13 @@ private:
     void RegisterHandler(uint32_t msg_id, MsgHandler handler);                                                          // 注册路由的回调函数
 
     // 具体的业务处理函数 (登录)
-    void HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const std::string& pb_data);
+    void HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, 
+        const std::string& pb_data);
 
-    void SendToConn(const std::shared_ptr<TcpConnection>& conn, uint32_t msg_id, const std::string& pb_data);           // 发送数据
+    void SendToConn(const std::shared_ptr<TcpConnection>& conn, uint32_t msg_id,
+        omnibox::ErrorCode err_code,
+        const std::string& err_msg,
+        uint64_t seq_id, const std::string& pb_data);                                                                   // 发送数据
 private:
     TcpServer server_;
 

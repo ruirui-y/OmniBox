@@ -97,14 +97,15 @@ const char descriptor_table_protodef_common_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "(\t\022\024\n\014method_index\030\003 \001(\r\022\021\n\targs_size\030\004 "
   "\001(\r\022\016\n\006seq_id\030\005 \001(\004*O\n\005MsgId\022\016\n\nID_UNKNO"
   "WN\020\000\022\020\n\014ID_HEARTBEAT\020\001\022\021\n\014ID_LOGIN_REQ\020\351"
-  "\007\022\021\n\014ID_LOGIN_RSP\020\352\007*y\n\tErrorCode\022\017\n\013ERR"
-  "_SUCCESS\020\000\022\027\n\023ERR_SERVER_INTERNAL\020\001\022\021\n\rE"
-  "RR_WRONG_PWD\020\002\022\026\n\022ERR_ACCOUNT_IN_USE\020\003\022\027"
-  "\n\023ERR_ACCOUNT_EXPIRED\020\004b\006proto3"
+  "\007\022\021\n\014ID_LOGIN_RSP\020\352\007*\251\001\n\tErrorCode\022\017\n\013ER"
+  "R_SUCCESS\020\000\022\027\n\023ERR_SERVER_INTERNAL\020\001\022\021\n\r"
+  "ERR_WRONG_PWD\020\002\022\026\n\022ERR_ACCOUNT_IN_USE\020\003\022"
+  "\027\n\023ERR_ACCOUNT_EXPIRED\020\004\022\026\n\022ERR_USER_NOT"
+  "_FOUND\020\005\022\026\n\022ERR_ACCOUNT_BANNED\020\006b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_common_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_common_2eproto = {
-  false, false, 471, descriptor_table_protodef_common_2eproto, "common.proto", 
+  false, false, 520, descriptor_table_protodef_common_2eproto, "common.proto", 
   &descriptor_table_common_2eproto_once, nullptr, 0, 2,
   schemas, file_default_instances, TableStruct_common_2eproto::offsets,
   file_level_metadata_common_2eproto, file_level_enum_descriptors_common_2eproto, file_level_service_descriptors_common_2eproto,
@@ -143,6 +144,8 @@ bool ErrorCode_IsValid(int value) {
     case 2:
     case 3:
     case 4:
+    case 5:
+    case 6:
       return true;
     default:
       return false;

@@ -101,12 +101,14 @@ enum ErrorCode : int {
   ERR_WRONG_PWD = 2,
   ERR_ACCOUNT_IN_USE = 3,
   ERR_ACCOUNT_EXPIRED = 4,
+  ERR_USER_NOT_FOUND = 5,
+  ERR_ACCOUNT_BANNED = 6,
   ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool ErrorCode_IsValid(int value);
 constexpr ErrorCode ErrorCode_MIN = ERR_SUCCESS;
-constexpr ErrorCode ErrorCode_MAX = ERR_ACCOUNT_EXPIRED;
+constexpr ErrorCode ErrorCode_MAX = ERR_ACCOUNT_BANNED;
 constexpr int ErrorCode_ARRAYSIZE = ErrorCode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ErrorCode_descriptor();

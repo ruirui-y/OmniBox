@@ -1,175 +1,36 @@
 ﻿syntax = "proto3";
 
-// 定义命名空间，生成的 C++ 代码会被包裹在 omnibox 这个 namespace 下
+// 依然保持在 omnibox 命名空间
 package omnibox;
+
+// 【极其重要】引入外部的数据结构！
+import "server_msg.proto";
 
 // 【核心设置】告诉 protoc 编译器：帮我生成 C++ 的纯虚基类（RPC 桩）
 // 你的 RPC 框架就是要去继承并重写这些虚函数！
-// 专门控制不要生成太臃肿的代码
 option cc_generic_services = true;
 
-
 // ==============================================================================
-// 🔐 1. 鉴权与保活面 (LoginService) - 负责账号登录与心跳维持
+// 1. 鉴权与保活服务接口
 // ==============================================================================
-
-// 1. 定义登录请求的数据结构
-message LoginRequest 
-{
-    string username = 1;                                                        // 账号
-    string password = 2;                                                        // 密码
-}
-
-// 2. 定义登录响应的数据结构
-message LoginResponse 
-{
-    int32 errcode = 1;                                                          // 错误码：0表示成功，非0表示具体的错误类型
-    string errmsg = 2;                                                          // 错误信息：例如 "密码错误"、"账号不存在"
-    string token = 3;                                                           // 登录凭证：成功后发给客户端，后续请求带上这个证明身份
-    int32 user_id = 4;                                                          // 服务器查库返回的用户id
-}
-
-message HeartbeatRequest {
-    int64 user_id = 1;
-    string token = 2;                                                           // 校验合法性，防止别人恶意刷你的接口
-}
-
-message HeartbeatResponse {
-    bool success = 1;
-    int64 server_time = 2;                                                      // 可选：返回服务端时间，方便前端做对齐
-}
-
-// 3. 定义服务接口
 service LoginService 
 {
     rpc Login(LoginRequest) returns(LoginResponse);                             // 处理登录方法
     rpc Heartbeat(HeartbeatRequest) returns(HeartbeatResponse);                 // 心跳保活
 }
 
-
 // ==============================================================================
-// 🌐 2. 网关反向推送面 (GatewayService) - 负责后端主动向客户端推消息
+// 2. 网关反向推送服务接口
 // ==============================================================================
-
-// 后端服务 -> 网关的推送请求
-message PushMessageRequest 
-{
-    int32 user_id = 1;                                                          // 告诉网关：把消息推给哪个玩家
-    int32 msg_type = 2;                                                         // 消息类型（比如 1代表聊天广播，2代表匹配成功对局信息）
-    string content = 3;                                                         // 具体的推送内容（比如对局服务器的 IP 和 Port）
-}
-
-message PushMessageResponse 
-{
-    int32 errcode = 1;                                                          // 0表示网关推送成功，非0表示玩家可能掉线了
-    string errmsg = 2;
-}
-
-// 网关暴露给后端微服务的专用 RPC 接口
 service GatewayService 
 {
     // 后端调用此方法，网关负责将消息转发给真实的客户端
     rpc PushMessage(PushMessageRequest) returns(PushMessageResponse);
 }
 
-
 // ==============================================================================
-// 🧠 3. 逻辑控制面 (MetaService) - 负责虚拟文件树的操作
+// 3. 元数据与虚拟文件树服务接口
 // ==============================================================================
-
-// ----------------------------------------
-// 1. 新建目录 (Create)
-// ----------------------------------------
-message CreateFolderRequest {
-    int64 user_id = 1;          
-    int64 parent_id = 2;        
-    string folder_name = 3;     
-}
-message CreateFolderResponse {
-    bool success = 1;
-    string message = 2;
-    int64 new_node_id = 3;      
-}
-
-// ----------------------------------------
-// 2. 删除节点 (Delete) - 软删除
-// ----------------------------------------
-message DeleteNodeRequest {
-    int64 user_id = 1;          
-    int64 node_id = 2;          
-}
-message DeleteNodeResponse {
-    bool success = 1;
-    string message = 2;
-}
-
-// ----------------------------------------
-// 3. 秒传查岗 (Check & Mount)
-// ----------------------------------------
-message CheckFileRequest {
-    int64 user_id = 1;
-    int64 parent_id = 2;
-    string file_hash = 3;
-    string file_name = 4;
-    int64 file_size = 5;
-}
-message CheckFileResponse {
-    bool is_exist = 1;      
-    string message = 2;     
-}
-
-// ----------------------------------------
-// 4. 重命名节点 (Rename)
-// ----------------------------------------
-message RenameNodeRequest {
-    int64 user_id = 1;          // 鉴权：只能改自己的
-    int64 node_id = 2;          // 要改哪个节点？
-    string new_name = 3;        // 新名字叫什么？
-}
-message RenameNodeResponse {
-    bool success = 1;
-    string message = 2;
-}
-
-// ----------------------------------------
-// 5. 移动节点 (Move)
-// ----------------------------------------
-message MoveNodeRequest {
-    int64 user_id = 1;
-    int64 node_id = 2;          // 被移动的节点
-    int64 target_parent_id = 3; // 要移动到哪个文件夹下？(新的 parent_id)
-}
-message MoveNodeResponse {
-    bool success = 1;
-    string message = 2;
-}
-
-// ----------------------------------------
-// 6. 拉取目录列表 (List) 
-// ----------------------------------------
-// 用户双击进入某个文件夹时，前端发起的请求
-message ListDirectoryRequest {
-    int64 user_id = 1;
-    int64 parent_id = 2;        // 要看哪个目录下的内容？(根目录传 0)
-}
-
-// 单个节点的信息载体 (用于列表展示)
-message NodeInfo {
-    int64 node_id = 1;
-    string node_name = 2;
-    bool is_dir = 3;            // 前端需要根据这个决定展示文件夹图标还是文件图标
-    int64 file_size = 4;        // 文件大小 (前端好做格式化)
-    string update_time = 5;     // 最后修改时间
-    string file_hash = 6;       // 如果是文件，带上哈希 (用于后续触发下载逻辑)
-}
-
-message ListDirectoryResponse {
-    bool success = 1;
-    string message = 2;
-    repeated NodeInfo nodes = 3; // 这是一个列表！相当于 C++ 里的 std::vector<NodeInfo>
-}
-
-// 🚀 定义元数据 RPC 服务
 service MetaService {
     rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse);
     rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse);
@@ -179,45 +40,9 @@ service MetaService {
     rpc ListDirectory(ListDirectoryRequest) returns (ListDirectoryResponse);
 }
 
-
 // ==============================================================================
-// 📦 4. 文件数据面 (TransferService) - 负责大文件的分片上传与落盘
+// 4. 大文件传输服务接口
 // ==============================================================================
-
-// 1. 文件碎片上传请求
-message FileChunkUploadRequest 
-{
-    // ===================================
-    // 逻辑层身份信息 (用于最后合并图纸)
-    // ===================================
-    string file_hash = 1;                                                       // 整个文件的总哈希 (灵魂标识)
-    string file_name = 2;                                                       // 文件名 (虚拟文件树展示用)
-    int64 total_size = 3;                                                       // 文件总大小
-
-    // ===================================
-    // 物理层切片信息 (用于 TransferServer 散列落盘)
-    // ===================================
-    string block_hash = 4;                                                      // 这块独立 1MB 肉丁的哈希 (去重的唯一依据！)
-    int32 chunk_index = 5;                                                      // 这是第几块？(绝对排位，对应 Mapping 表的 block_order)
-    bytes data = 6;                                                             // 真正的碎片实体数据 (纯二进制)
-    int64 offset = 7;                                                           // 保留字段：文件级偏移量 (兼容部分老旧下载逻辑)
-
-    // ===================================
-    // 控制标志
-    // ===================================
-    bool is_eof = 8;                                                            // End Of File: 是不是最后一块碎片？
-}
-
-// 2. 碎片接收响应
-message FileChunkUploadResponse 
-{
-    bool success = 1;                                                           // 这块碎片是否成功收到并落盘
-    string message = 2;                                                         // 错误信息或成功提示
-    bool is_duplicate = 3;                                                      // 告知网关：这块肉丁是不是触发了“块级秒传”？(即：硬盘里已经有了，根本没写盘)
-    int64 next_offset = 4;                                                      // 保留字段 (在前端滑动窗口并发模式下，其实已经用不到它了，前端自己管并发)
-}
-
-// 3. 定义文件传输 RPC 服务
 service TransferService 
 {
     // 流式上传碎片的接口

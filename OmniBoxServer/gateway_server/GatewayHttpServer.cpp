@@ -10,6 +10,7 @@
 #include <mymuduo/db/DbExecutor.h>
 #include "RedisClient.h"
 #include "server_msg.pb.h"
+#include "internal_rpc.pb.h"
 #include "MyController.h"
 #include "HttpRpcClosure.h"
 

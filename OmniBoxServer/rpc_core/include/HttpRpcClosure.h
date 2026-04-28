@@ -11,7 +11,6 @@
 template <typename RespType>
 class HttpRpcClosure : public google::protobuf::Closure
 {
-
 public:
 	using SuccessCallback = std::function<void(const TcpConnectionPtr&, const std::shared_ptr<RespType>&)>;
 

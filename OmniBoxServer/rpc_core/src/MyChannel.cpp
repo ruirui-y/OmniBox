@@ -108,7 +108,7 @@ void MyChannel::OnMessage(const TcpConnectionPtr& conn, Buffer* buffer)
         uint64_t network_seq_id = 0;
         memcpy(&network_seq_id, buffer->peek(), 8);
         uint64_t seq_id = be64toh(network_seq_id);
-        buffer->retrieve(8); // 扔掉单号字段
+        buffer->retrieve(8);                                                                    // 扔掉单号字段
 
         // 5. 拿出纯 Protobuf 数据
         std::string pb_data = buffer->RetrieveAsString(total_len - 8);
@@ -170,10 +170,7 @@ void MyChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     send_rpc_str += header_str;
     send_rpc_str += request_str;
 
-    // 5. 准备睡觉的床和叫醒凭证
-    auto prom = std::make_shared<std::promise<std::string>>();
-    std::future<std::string> fut = prom->get_future();
-
+    // 5. 登记回调上下文
     {
         // 去总台登记：单号 seq_id 对应的凭证是 发送完成的回调
         std::lock_guard<std::mutex> lock(map_mutex_);

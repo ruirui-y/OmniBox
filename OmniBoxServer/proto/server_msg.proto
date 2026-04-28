@@ -3,12 +3,6 @@
 // 定义命名空间，生成的 C++ 代码会被包裹在 omnibox 这个 namespace 下
 package omnibox;
 
-// 【核心设置】告诉 protoc 编译器：帮我生成 C++ 的纯虚基类（RPC 桩）
-// 你的 RPC 框架就是要去继承并重写这些虚函数！
-// 专门控制不要生成太臃肿的代码
-option cc_generic_services = true;
-
-
 // ==============================================================================
 // 🔐 1. 鉴权与保活面 (LoginService) - 负责账号登录与心跳维持
 // ==============================================================================
@@ -39,14 +33,6 @@ message HeartbeatResponse {
     int64 server_time = 2;                                                      // 可选：返回服务端时间，方便前端做对齐
 }
 
-// 3. 定义服务接口
-service LoginService 
-{
-    rpc Login(LoginRequest) returns(LoginResponse);                             // 处理登录方法
-    rpc Heartbeat(HeartbeatRequest) returns(HeartbeatResponse);                 // 心跳保活
-}
-
-
 // ==============================================================================
 // 🌐 2. 网关反向推送面 (GatewayService) - 负责后端主动向客户端推消息
 // ==============================================================================
@@ -64,14 +50,6 @@ message PushMessageResponse
     int32 errcode = 1;                                                          // 0表示网关推送成功，非0表示玩家可能掉线了
     string errmsg = 2;
 }
-
-// 网关暴露给后端微服务的专用 RPC 接口
-service GatewayService 
-{
-    // 后端调用此方法，网关负责将消息转发给真实的客户端
-    rpc PushMessage(PushMessageRequest) returns(PushMessageResponse);
-}
-
 
 // ==============================================================================
 // 🧠 3. 逻辑控制面 (MetaService) - 负责虚拟文件树的操作
@@ -169,17 +147,6 @@ message ListDirectoryResponse {
     repeated NodeInfo nodes = 3; // 这是一个列表！相当于 C++ 里的 std::vector<NodeInfo>
 }
 
-// 🚀 定义元数据 RPC 服务
-service MetaService {
-    rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse);
-    rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse);
-    rpc CheckFile(CheckFileRequest) returns (CheckFileResponse);
-    rpc RenameNode(RenameNodeRequest) returns (RenameNodeResponse);
-    rpc MoveNode(MoveNodeRequest) returns (MoveNodeResponse);
-    rpc ListDirectory(ListDirectoryRequest) returns (ListDirectoryResponse);
-}
-
-
 // ==============================================================================
 // 📦 4. 文件数据面 (TransferService) - 负责大文件的分片上传与落盘
 // ==============================================================================
@@ -215,11 +182,4 @@ message FileChunkUploadResponse
     string message = 2;                                                         // 错误信息或成功提示
     bool is_duplicate = 3;                                                      // 告知网关：这块肉丁是不是触发了“块级秒传”？(即：硬盘里已经有了，根本没写盘)
     int64 next_offset = 4;                                                      // 保留字段 (在前端滑动窗口并发模式下，其实已经用不到它了，前端自己管并发)
-}
-
-// 3. 定义文件传输 RPC 服务
-service TransferService 
-{
-    // 流式上传碎片的接口
-    rpc UploadChunk(FileChunkUploadRequest) returns (FileChunkUploadResponse);
 }

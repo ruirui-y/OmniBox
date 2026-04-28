@@ -1,18 +1,19 @@
 #ifndef MY_GATEWAY_SERVICE_H
 #define MY_GATEWAY_SERVICE_H
 
-#include "gateway.pb.h"
+#include "common.pb.h"
+#include "internal_rpc.pb.h"
 #include <mymuduo/Log/Logger.h>
 #include <mymuduo/net/TcpConnection.h>
 #include <mutex>
 #include "GatewayTcpServer.h"
-using namespace game::rpc;
+using namespace omnibox;
 
 /*
 * 其余服务通过rpc调用gateway，gateway再通过tcp连接推送给客户端
 */
 
-class MyGatewayService : public game::rpc::GatewayService
+class MyGatewayService : public omnibox::GatewayService
 {
 public:
     MyGatewayService(GatewayTcpServer* tcp_server) : tcp_server_(tcp_server) {}
@@ -20,8 +21,8 @@ public:
 
 public:
     virtual void PushMessage(::google::protobuf::RpcController* controller,
-        const ::game::rpc::PushMessageRequest* request,
-        ::game::rpc::PushMessageResponse* response,
+        const ::omnibox::PushMessageRequest* request,
+        ::omnibox::PushMessageResponse* response,
         ::google::protobuf::Closure* done) override
     {
         int32_t uid = request->user_id();

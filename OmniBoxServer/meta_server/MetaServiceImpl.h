@@ -1,5 +1,5 @@
 #pragma once
-#include "meta_service.pb.h" 
+#include "internal_rpc.pb.h" 
 
 #include <mymuduo/net/EventLoop.h>
 #include <mymuduo/base/ThreadPool.h>

@@ -1,7 +1,7 @@
 #ifndef TRANSFER_SERVICE_IMPL_H
 #define TRANSFER_SERVICE_IMPL_H
 
-#include "transfer.pb.h"
+#include "internal_rpc.pb.h"
 #include <string>
 #include <unordered_map>
 #include <mutex>

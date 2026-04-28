@@ -17,7 +17,7 @@ int main(int argc, char** argv)
     GatewayTcpServer tcp_server(&main_loop, "0.0.0.0", 8001);
 
     // 2. 启动外网 HTTP 网关 (挂载到 main_loop，处理短连接、大文件上传)
-    GatewayHttpServer http_server(&main_loop, "0.0.0.0", 8002);
+    // GatewayHttpServer http_server(&main_loop, "0.0.0.0", 8002);
 
     // 3. 启动内网 RPC (也挂载到 main_loop！)
     RPCServer gateway_rpc_server(&main_loop, "127.0.0.1", 8080);
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 
     // 启动监听 (它们内部的 acceptor 开始工作)
     tcp_server.Start(4);                                                                        // TCP 网关分配 4 个 Worker 线程
-    http_server.Start(4);                                                                       // HTTP 网关也分配 4 个 Worker 线程
+    // http_server.Start(4);                                                                       // HTTP 网关也分配 4 个 Worker 线程
     gateway_rpc_server.Run(2);                                                                  // RPC 分配 2 个 Worker 线程
 
     LOG_INFO << "Server is fully started. TCP: 8001, HTTP: 8002, RPC: 8080";

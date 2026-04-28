@@ -3,26 +3,29 @@
 
 #include <string>
 #include <memory>
-#include "login.pb.h"
+#include "server_msg.pb.h"
+#include "internal_rpc.pb.h"
 
 // 前置声明，避免在头文件中引入过多的底层依赖
 class EventLoop;
 class ThreadPool;
 
-class MyLoginService : public game::rpc::LoginService
+using namespace omnibox;
+
+class MyLoginService : public LoginService
 {
 public:
     MyLoginService(EventLoop* loop, std::shared_ptr<ThreadPool> threadPool);
     ~MyLoginService() = default;
 
     virtual void Login(::google::protobuf::RpcController* controller,
-        const ::game::rpc::LoginRequest* request,
-        ::game::rpc::LoginResponse* response,
+        const ::LoginRequest* request,
+        ::LoginResponse* response,
         ::google::protobuf::Closure* done) override;
 
     virtual void Heartbeat(::google::protobuf::RpcController* controller,
-        const ::game::rpc::HeartbeatRequest* request,
-        ::game::rpc::HeartbeatResponse* response,
+        const ::HeartbeatRequest* request,
+        ::HeartbeatResponse* response,
         ::google::protobuf::Closure* done) override;
 
 private:

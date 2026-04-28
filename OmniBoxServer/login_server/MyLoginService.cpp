@@ -8,8 +8,8 @@
 #include <openssl/sha.h>
 #include <iomanip>
 #include <sstream>
+#include "common.pb.h"
 
-using namespace game::rpc;
 
 // 构造函数
 MyLoginService::MyLoginService(EventLoop* loop, std::shared_ptr<ThreadPool> threadPool)
@@ -19,8 +19,8 @@ MyLoginService::MyLoginService(EventLoop* loop, std::shared_ptr<ThreadPool> thre
 
 // 登录接口实现
 void MyLoginService::Login(::google::protobuf::RpcController* controller,
-    const ::game::rpc::LoginRequest* request,
-    ::game::rpc::LoginResponse* response,
+    const ::LoginRequest* request,
+    ::LoginResponse* response,
     ::google::protobuf::Closure* done)
 {
     // 1. 框架给业务吐出请求参数
@@ -28,9 +28,8 @@ void MyLoginService::Login(::google::protobuf::RpcController* controller,
     std::string pwd = request->password();
 
     // 2. 构造查询语句 
-    std::string sql = "SELECT user_id, password, status, pwd_version, "
-        "IF(last_heartbeat_time > (NOW() - INTERVAL 30 SECOND), 1, 0) AS is_active "
-        "FROM user_info WHERE username = ?";
+    // 移除了对 is_active 的查询，因为在线校验已经彻底下放给了网关，减轻 MySQL 压力
+    std::string sql = "SELECT user_id, password, status, pwd_version FROM user_info WHERE username = ?";
     DbParams params = { name };
 
     // 3. 异步查库
@@ -46,17 +45,10 @@ void MyLoginService::Login(::google::protobuf::RpcController* controller,
                 int64_t uid = std::get<int64_t>(row.at("user_id"));
                 int pwd_version = std::get<int>(row.at("pwd_version"));
 
-                // 获取动态计算出的在线状态
-                bool bonline = std::get<int64_t>(row.at("is_active")) == 1;
-
+                // 判断账号是否被封禁
                 if (status == 0) {
-                    response->set_errcode(403);
+                    response->set_errcode(ERR_ACCOUNT_BANNED);
                     response->set_errmsg("Account has been banned");
-                }
-                else if (bonline)
-                {
-                    response->set_errcode(403);
-                    response->set_errmsg("User already online. Multiple login is forbidden.");
                 }
                 else
                 {
@@ -90,25 +82,27 @@ void MyLoginService::Login(::google::protobuf::RpcController* controller,
 
                     if (is_match)
                     {
-                        response->set_errcode(0);
+                        response->set_errcode(omnibox::ERR_SUCCESS);
                         response->set_errmsg("Login Success");
-                        response->set_token("11111111");
+                        response->set_token("11111111"); // TODO: 后续可接入真实的 JWT 或随机 Token 生成
                         response->set_user_id(uid);
                         LOG_INFO << "[Login Success] username = " << name << ", uid = " << uid;
                     }
                     else
                     {
-                        response->set_errcode(401);
+                        response->set_errcode(omnibox::ERR_WRONG_PWD);
                         response->set_errmsg("Invalid password");
                     }
                 }
             }
             else
             {
-                response->set_errcode(404);
+                // 账号不存在
+                response->set_errcode(omnibox::ERR_USER_NOT_FOUND);
                 response->set_errmsg("User not found");
             }
 
+            // 4. 执行回调闭包，将组装好的 response 传回给发起调用的网关
             if (done) {
                 done->Run();
             }
@@ -117,8 +111,8 @@ void MyLoginService::Login(::google::protobuf::RpcController* controller,
 
 // 心跳接口实现
 void MyLoginService::Heartbeat(::google::protobuf::RpcController* controller,
-    const ::game::rpc::HeartbeatRequest* request,
-    ::game::rpc::HeartbeatResponse* response,
+    const ::HeartbeatRequest* request,
+    ::HeartbeatResponse* response,
     ::google::protobuf::Closure* done)
 {
     int64_t uid = request->user_id();

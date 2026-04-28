@@ -5,14 +5,18 @@
 #include <arpa/inet.h>
 #include "common.pb.h"
 #include "server_msg.pb.h"
+#include "internal_rpc.pb.h"
 #include "RedisClient.h"   
 #include "MyController.h"
+#include "TcpRpcClosure.h"
 
 using namespace std::placeholders;
 using namespace omnibox;
 
+#define CONN_TIME_OUT                                       60                                  
+
 GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint16_t port)
-    : server_(loop, ip, port, 100), loop_(loop), ip_(ip), port_(port)
+    : server_(loop, ip, port, CONN_TIME_OUT), loop_(loop), ip_(ip), port_(port)
 {
     server_.SetConnectionCallback(std::bind(&GatewayTcpServer::OnConnection, this, _1));
     server_.SetMessageCallback(std::bind(&GatewayTcpServer::OnMessage, this, _1, _2));
@@ -45,11 +49,22 @@ void GatewayTcpServer::OnConnection(const std::shared_ptr<TcpConnection>& conn)
     // 断开连接，移除映射
     if (!conn->Connected())
     {
-        if (conn->GetContext().has_value())
+        // 这里断开只有三种情况，客户端主动断开，服务器主动断开以及超时断开
+        // 不论是哪种断开，都需要判断是否登录成功，登录成功的标志就是conn是否绑定了uid
+        bool bLogin = conn->GetContext().has_value();
+        if (bLogin)
         {
+            // 移除映射
             int32_t uid = std::any_cast<int32_t>(conn->GetContext());
-            std::lock_guard<std::mutex> lock(session_mutex_);
-            user_sessions_.erase(uid);
+            
+            {
+                std::lock_guard<std::mutex> lock(session_mutex_);
+                user_sessions_.erase(uid);
+            }
+
+            // 将最后心跳时间设置为2002年 todo
+
+
             LOG_INFO << "[Gateway] Player " << uid << " disconnected. Session removed.";
         }
     }
@@ -94,77 +109,67 @@ void GatewayTcpServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buf
 void GatewayTcpServer::HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const std::string& pb_data)
 {
     // 1. 解包外网请求
-    ClientLoginRequest client_req;
-    if (!client_req.ParseFromString(pb_data)) {
+    auto req = std::make_shared<LoginRequest>();
+    if (!req->ParseFromString(pb_data)) 
+    {
         LOG_ERROR << "[Gateway] Failed to parse ClientLoginRequest!";
+        conn->ForceClose();
         return;
     }
 
-    LOG_INFO << "[Gateway] User attempting login with account: " << client_req.username();
-
-    // 2. 转换成内网RPC请求
-    game::rpc::LoginRequest rpc_req;
-    rpc_req.set_username(client_req.username());
-    rpc_req.set_password(client_req.password());
-    game::rpc::LoginResponse rpc_resp;
+    std::string username = req->username();
+    LOG_INFO << "[Gateway] User attempting login with account: " << req->username();
     
-    // 3. 化身 RPC Client，向 LoginServer 发起登录请求
-    game::rpc::LoginService_Stub stub(login_channel_.get());
-    MyController controller;
-    stub.Login(&controller, &rpc_req, &rpc_resp, nullptr);
-
-    // 4. 检查底层网络是否报错
-    if (controller.Failed())
-    {
-        LOG_ERROR << "[Gateway] RPC Login call failed:" << controller.ErrorText();
-        game::client::ClientLoginResponse client_resp;
-        client_resp.set_errcode(500);
-        client_resp.set_errmsg("Gateway Internal RPC Error");
-
-        std::string resp_data;
-        client_resp.SerializeToString(&resp_data);
-        SendToConn(conn, game::net::MSG_LOGIN_RESP, resp_data);
-
-        return;
-    }
-
-    // 5. 解析 RPC 响应，组装成外网响应准备发给 UE5
-    game::client::ClientLoginResponse client_resp;
-    client_resp.set_errcode(rpc_resp.errcode());
-    client_resp.set_errmsg(rpc_resp.errmsg());
-
-    if (rpc_resp.errcode() == 0)
-    {
-        // 登录成功！拿到后端分配的真实 UID，绑定到当前长连接上
-        int32_t real_uid = rpc_resp.user_id();
-        conn->SetContext(real_uid);
-
+    // 2. 封装登录回调
+    auto success_cb = [this, username](const std::shared_ptr<TcpConnection>& conn, const std::shared_ptr<LoginResponse>& response)
         {
-            std::lock_guard<std::mutex> lock(session_mutex_);
-            user_sessions_[real_uid] = conn;
-        }
-        LOG_INFO << "[Gateway] " << client_req.username() << " login success! uid = " << real_uid;
-        client_resp.set_user_id(real_uid);
+            // 判断登录是否成功
+            if (response->errcode() == ErrorCode::ERR_SUCCESS)
+            {
+                int32_t uid = response->user_id();
+                conn->SetContext(uid);                                                              // 向底层连接绑定用户id
+                
+                // 判断是否重复登录
+                std::shared_ptr<TcpConnection> old_conn;
+                {
+                    std::lock_guard<std::mutex> lock(session_mutex_);
+                    auto it = user_sessions_.find(uid);
+                    if (it != user_sessions_.end())
+                    {
+                        // 发现这个 UID 已经在网关里了！把它拿出来准备踢掉
+                        old_conn = it->second;
+                    }
+                    // 无论如何，新连接上位
+                    user_sessions_[uid] = conn;
+                }
 
-        // 注册网关信息到redis的用户表中
-        RedisClient redis;
-        if (redis.Connect("127.0.0.1", 6379)) 
-        {
-            // 设置rpc网关地址信息
-            std::string rpc_addr = "127.0.0.1:8080";
-            redis.HSet("session:users", std::to_string(real_uid), rpc_addr);
-            LOG_INFO << "[Gateway] " << client_req.username()  << " globally registered id : " << real_uid << " to Redis ->" << rpc_addr;
-        }
-        else 
-        {
-            LOG_ERROR << "[Gateway] Redis connect failed, global routing registration skipped!";
-        }
-    }
+                // 踢人
+                if (old_conn)
+                {
+                    LOG_WARN << "[Gateway] User " << uid << " logged in from a new device. Kicking old connection.";
+                    old_conn->ForceClose();
+                }
 
-    // 6. 序列化外网响应，直接打回给客户端
-    std::string resp_data;
-    client_resp.SerializeToString(&resp_data);
-    SendToConn(conn, ID_LOGIN_RSP, resp_data);
+                LOG_INFO << "[Gateway] Player " << uid << " login success! Token generated.";
+                SendToConn(conn, omnibox::ID_LOGIN_RSP, response->SerializeAsString());
+            }
+            else
+            {
+                // 登录失败，强制断开连接
+                LOG_INFO << "[Gateway] Player " << username << " login failed! Error code: " << response->errcode();
+                
+                // 由于发送操作是异步的，所以关闭连接也就是下面调用的这个conn函数也必须要是异步的，这样才能通过事件循环排队的方式强制同步
+                SendToConn(conn, omnibox::ID_LOGIN_RSP, response->SerializeAsString());
+                conn->ForceClose();
+            }
+        };
+
+    // 3. 转发登录请求
+    auto controler = std::make_shared<MyController>();
+    auto rsp = std::make_shared<LoginResponse>();
+    auto closure = new TcpRpcClosure<LoginResponse>(conn, controler, rsp, success_cb);
+    LoginService_Stub stub(login_channel_.get());
+    stub.Login(controler.get(), req.get(), rsp.get(), closure);
 }
 
 // ================== 推送响应回包 ==================

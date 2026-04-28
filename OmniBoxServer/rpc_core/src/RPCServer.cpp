@@ -1,5 +1,5 @@
 #include "RPCServer.h"
-#include "rpcheader.pb.h"
+#include "common.pb.h"
 #include "RPCClosure.h"
 #include <mymuduo/Log/Logger.h>
 #include <endian.h>
@@ -40,7 +40,7 @@ void RPCServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buffer* bu
 
         // 3. 偷拿 header 数据进行反序列化（依然不剔除 buffer，因为 args 还没确认收全）
         std::string rpc_header_str(buffer->peek() + 4, header_size);
-        rpc::core::RpcHeader rpcHeader;
+        omnibox::RpcHeader rpcHeader;
         if (!rpcHeader.ParseFromString(rpc_header_str)) {
             LOG_ERROR << "rpc header parse error!";
             return;

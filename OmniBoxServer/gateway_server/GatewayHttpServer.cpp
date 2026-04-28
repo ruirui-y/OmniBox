@@ -9,17 +9,13 @@
 #include <mymuduo/Log/Logger.h>
 #include <mymuduo/db/DbExecutor.h>
 #include "RedisClient.h"
-#include "MsgID.h"
-#include "login.pb.h"
-#include "meta_service.pb.h"
-#include "transfer.pb.h"
-#include "client_gateway.pb.h"
+#include "server_msg.pb.h"
 #include "MyController.h"
 #include "HttpRpcClosure.h"
 
 using namespace std::placeholders;
 using json = nlohmann::json;
-using namespace game::rpc;
+using namespace omnibox;
 
 GatewayHttpServer::GatewayHttpServer(EventLoop* loop, const std::string& ip, uint16_t port)
     : server_(loop, ip, port, 100), loop_(loop)
@@ -256,7 +252,7 @@ void GatewayHttpServer::HandleLogin(const std::shared_ptr<TcpConnection>& conn, 
     auto done = new HttpRpcClosure<::LoginResponse>(conn, controller, rpc_resp, success_callback);
 
     // 6. 召唤 Stub 发送 RPC 请求
-    game::rpc::LoginService_Stub stub(login_channel_.get());
+    LoginService_Stub stub(login_channel_.get());
     stub.Login(controller.get(), &rpc_req, rpc_resp.get(), done);
 }
 
@@ -291,17 +287,17 @@ void GatewayHttpServer::HandleHeartbeat(const std::shared_ptr<TcpConnection>& co
     }
 
     // 4. 组装 RPC 请求发往 LoginService
-    ::game::rpc::HeartbeatRequest rpc_req;
+    HeartbeatRequest rpc_req;
     // ⚠️ 注意：这里的键名 "user_id" 和 "token" 必须和前端 JS 中 body: JSON.stringify({...}) 里的保持完全一致！
     rpc_req.set_user_id(req_json.value("user_id", 0LL));
     rpc_req.set_token(req_json.value("token", ""));
 
-    auto rpc_resp = std::make_shared<::game::rpc::HeartbeatResponse>();
+    auto rpc_resp = std::make_shared<HeartbeatResponse>();
     auto controller = std::make_shared<MyController>();
 
     // 5. 定义 RPC 成功后的回调：将服务端处理结果封装成 HTTP JSON 返回给前端
-    std::function<void(const TcpConnectionPtr&, const std::shared_ptr<::game::rpc::HeartbeatResponse>&)> success_callback =
-        [](const TcpConnectionPtr& conn, const std::shared_ptr<::game::rpc::HeartbeatResponse>& resp)
+    std::function<void(const TcpConnectionPtr&, const std::shared_ptr<HeartbeatResponse>&)> success_callback =
+        [](const TcpConnectionPtr& conn, const std::shared_ptr<HeartbeatResponse>& resp)
         {
             json res_json;
             res_json["success"] = resp->success();
@@ -321,12 +317,12 @@ void GatewayHttpServer::HandleHeartbeat(const std::shared_ptr<TcpConnection>& co
             conn->Send(http_response);
         };
 
-    auto done = new HttpRpcClosure<::game::rpc::HeartbeatResponse>(conn, controller, rpc_resp, success_callback);
+    auto done = new HttpRpcClosure<HeartbeatResponse>(conn, controller, rpc_resp, success_callback);
 
     // 6. 通过 LoginService 的专属 Channel 发送 RPC 请求
     // 假设你在网关初始化时，给登录服务建的通道叫 login_channel_
     LOG_INFO << "dis heart request";
-    game::rpc::LoginService_Stub stub(login_channel_.get());
+    LoginService_Stub stub(login_channel_.get());
     stub.Heartbeat(controller.get(), &rpc_req, rpc_resp.get(), done);
 }
 

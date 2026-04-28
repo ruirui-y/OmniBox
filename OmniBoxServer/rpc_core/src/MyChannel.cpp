@@ -8,7 +8,7 @@
 #include <mymuduo/Log/Logger.h>
 #include <vector>
 #include <endian.h>
-#include "rpcheader.pb.h"
+#include "common.pb.h"
 #include "ConnectionPool.h"
 
 using namespace std::placeholders;
@@ -148,7 +148,7 @@ void MyChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     uint64_t seq_id = seq_id_allocator_++;
 
     // 2. 组装请求头
-    rpc::core::RpcHeader header;
+    omnibox::RpcHeader header;
     header.set_service_name(method->service()->name());
     header.set_method_name(method->name());
     header.set_method_index(method->index());

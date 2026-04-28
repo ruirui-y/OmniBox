@@ -3,16 +3,13 @@
 #include <mymuduo/db/DbExecutor.h>
 #include <any>
 #include <arpa/inet.h>
-#include "login.pb.h"
-#include "meta_service.pb.h"
-#include "client_gateway.pb.h"
-#include "MsgID.h"     
+#include "common.pb.h"
+#include "server_msg.pb.h"
 #include "RedisClient.h"   
-#include "transfer.pb.h"
 #include "MyController.h"
 
 using namespace std::placeholders;
-using namespace game::rpc;
+using namespace omnibox;
 
 GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint16_t port)
     : server_(loop, ip, port, 100), loop_(loop), ip_(ip), port_(port)
@@ -21,7 +18,7 @@ GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint1
     server_.SetMessageCallback(std::bind(&GatewayTcpServer::OnMessage, this, _1, _2));
 
     // ================== 路由表注册 ==================
-    RegisterHandler(game::net::MSG_LOGIN_REQ, std::bind(&GatewayTcpServer::HandleLoginReq, this, _1, _2));
+    RegisterHandler(ID_LOGIN_REQ, std::bind(&GatewayTcpServer::HandleLoginReq, this, _1, _2));
 
     // 建立长连接
     login_channel_ = std::make_shared<MyChannel>("127.0.0.1", 9090);
@@ -93,12 +90,11 @@ void GatewayTcpServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buf
     }
 }
 
-
 // ================== 具体的业务处理 (Handler) ==================
 void GatewayTcpServer::HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const std::string& pb_data)
 {
     // 1. 解包外网请求
-    game::client::ClientLoginRequest client_req;
+    ClientLoginRequest client_req;
     if (!client_req.ParseFromString(pb_data)) {
         LOG_ERROR << "[Gateway] Failed to parse ClientLoginRequest!";
         return;
@@ -168,7 +164,7 @@ void GatewayTcpServer::HandleLoginReq(const std::shared_ptr<TcpConnection>& conn
     // 6. 序列化外网响应，直接打回给客户端
     std::string resp_data;
     client_resp.SerializeToString(&resp_data);
-    SendToConn(conn, game::net::MSG_LOGIN_RESP, resp_data);
+    SendToConn(conn, ID_LOGIN_RSP, resp_data);
 }
 
 // ================== 推送响应回包 ==================

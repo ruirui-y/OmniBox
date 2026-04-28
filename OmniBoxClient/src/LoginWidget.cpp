@@ -19,7 +19,7 @@
 #include "CinemaMessageBox.h"
 #include "ThreadPool.h"
 #include "TitleBar.h"
-
+using namespace omnibox;
 
 LoginWidget::LoginWidget(QWidget* parent)
 	: QWidget(parent), _Parent(parent)
@@ -195,11 +195,9 @@ void LoginWidget::AutoLogin()
 
 void LoginWidget::WriteLoginConfig()
 {
-	UserInfo user_info = UserMgr::Instance()->getUserInfo();
-
 	QJsonObject login_json;
-	login_json["Account"] = user_info.UserName;
-	login_json["Password"] = user_info.Password;
+	login_json["Account"] = UserMgr::Instance()->GetUserName();
+	login_json["Password"] = UserMgr::Instance()->GetPassword();
 	login_json["icon"] = "";
 
 	// 写入配置文件中
@@ -261,10 +259,8 @@ void LoginWidget::OnLoginButtonClicked()
 	QString pass = m_passEdit->text();
 
 	// 设置用户名和密码
-	UserInfo user_info;
-	user_info.UserName = user;
-	user_info.Password = pass;
-	UserMgr::Instance()->setUserInfo(user_info);
+	UserMgr::Instance()->SetUserName(user);
+	UserMgr::Instance()->SetPassword(pass);
 
 	// 禁止重复点击
 	EnableBtn(false);
@@ -300,7 +296,6 @@ void LoginWidget::slot_tcp_con_finished(bool success)
 
 void LoginWidget::slot_login_failed(int errCode)
 {
-	using namespace ServerApi;
 	QString result;
 
 	// 👑 绝杀：使用 switch-case 替换 if-else，逻辑更清晰，执行效率更高
@@ -310,7 +305,7 @@ void LoginWidget::slot_login_failed(int errCode)
 		result = QString::fromLocal8Bit("服务器内部错误，请稍后再试");
 		break;
 	case ErrorCode::ERR_WRONG_PWD:
-		result = QString::fromLocal8Bit("账号不存在或密码错误");
+		result = QString::fromLocal8Bit("密码错误，请检查您的输入");					// 提示已细化
 		break;
 	case ErrorCode::ERR_ACCOUNT_IN_USE:
 		result = QString::fromLocal8Bit("账号已在其他设备登录，请勿重复登录");
@@ -318,19 +313,32 @@ void LoginWidget::slot_login_failed(int errCode)
 	case ErrorCode::ERR_ACCOUNT_EXPIRED:
 		result = QString::fromLocal8Bit("账号授权已过期，请联系管理员续期");
 		break;
+	case ErrorCode::ERR_USER_NOT_FOUND:
+		result = QString::fromLocal8Bit("该账号不存在，请确认账号是否输入正确");			// 独立处理账号不存在
+		break;
+	case ErrorCode::ERR_ACCOUNT_BANNED:
+		result = QString::fromLocal8Bit("账号已被封禁，请联系管理员处理");				// 处理封禁逻辑
+		break;
+	case ErrorCode::ERR_SUCCESS:
+		// 防呆设计：理论上 failed 槽函数不会收到 0，但如果后端误传，直接拦截
+		result = QString::fromLocal8Bit("状态异常：服务端返回了成功的错误码");
+		break;
 	default:
-		// 兜底逻辑：如果出现其他未知的错误码（比如网络层的断层）
+		// 兜底逻辑：如果出现其他未知的错误码（比如网络层的断层或者新增了枚举但前端没更新）
 		result = QString::fromLocal8Bit("登录异常，未知错误码: ") + QString::number(errCode);
 		break;
 	}
 
+	// 弹窗提示用户
 	CinemaMessageBox::ShowWarning(this, u8"登录失败", result);
 
+	// 显示父窗口
 	_Parent->show();
 
+	// 打印详细日志，方便开发和排查
 	qDebug() << QString::fromLocal8Bit("[LoginWidget] 登录失败, 错误码:") << errCode << u8" 描述:" << result;
 
-	// 恢复登录按钮状态
+	// 恢复登录按钮状态，允许用户再次点击
 	EnableBtn(true);
 }
 

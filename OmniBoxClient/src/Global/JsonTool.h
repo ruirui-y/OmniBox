@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include "singletion.h"
-#include "Struct.h"
 
 class JsonTool  : public QObject, public Singleton<JsonTool>
 {
@@ -18,12 +17,9 @@ public:
 	bool readJsonFile(const QString& path, QJsonDocument& outDoc, QString* err = nullptr);
 	bool writeJsonFile(const QString& path, const QJsonDocument& inDoc, QString* err = nullptr);
 
-	bool ConversionJsonToUserInfo(const QJsonObject& jsonObj, UserInfo& outInfo);				// 转换json到UserInfo
+	bool ConversionJsonToUserInfo(const QJsonObject& jsonObj);
 
 	bool clearJsonFile(const QString& path);
-
-private:
-	bool ParseGameObject(const QJsonObject& obj, GameData& outGame, QString* warn = nullptr);   // 解析单个游戏
 
 private:
 	JsonTool(QObject* parent = 0);

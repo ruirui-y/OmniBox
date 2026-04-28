@@ -4,7 +4,6 @@
 #include <QDialog>
 #include "ui_LoginWidget.h"
 #include "Enum.h"
-#include "Struct.h"
 
 class QCheckBox;
 class QLabel;

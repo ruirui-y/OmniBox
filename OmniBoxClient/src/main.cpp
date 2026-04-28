@@ -4,14 +4,13 @@
 #include <QDebug>
 #include <QDir>
 #include <QThread>
+#include <QNetworkProxy>
 #include "Global.h"
 #include "Macro.h"
 #include "GameItem.h"
 #include "LogRecord.h"
-#include "Struct.h"
 #include "Enum.h"
 #include "ThreadPool.h"
-#include <QVBoxLayout>
 
 
 void LoadStyle(QApplication* app)
@@ -39,6 +38,7 @@ int main(int argc, char *argv[])
 {
     RegisterMetaTypes();
     QApplication app(argc, argv);
+    QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
 
     // 启动线程池
     ThreadPool::Instance()->Start(4);

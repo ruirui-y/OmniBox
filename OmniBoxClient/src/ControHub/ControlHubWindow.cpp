@@ -8,7 +8,6 @@
 #include <QListWidget>
 #include <QButtonGroup>
 #include "GameItem.h"
-#include "MovieWidget.h"
 #include "GameWidget.h"
 #include "SettingWidget.h"
 #include "UserMgr.h"
@@ -37,7 +36,7 @@ ControlHubWindow::ControlHubWindow(QWidget* parent) : QWidget(parent)
     // 2.顶部栏
     m_title = new TitleBar(this);
     m_title->SetMode(TitleMode::Hub);
-    m_title->SetUserName(UserMgr::Instance()->getUserInfo().UserName);
+    m_title->SetUserName(UserMgr::Instance()->GetUserName());
     root->addWidget(m_title);
 
     // 3.主窗口(水平布局)
@@ -88,18 +87,6 @@ ControlHubWindow::ControlHubWindow(QWidget* parent) : QWidget(parent)
     m_stack = new QStackedLayout();
     m_stack->setContentsMargins(0, 0, 0, 0);
     m_stack->setSpacing(0);
-
-    // Index 0: 影片播放窗口
-    MovieWidget* movie_widget = new MovieWidget(center);
-    m_stack->addWidget(movie_widget);
-
-    // Index 1: 对战控制大厅 (原 GameWidget，里面包含了设备、玩法、对战等)
-    GameWidget* game_widget = new GameWidget(center);
-    m_stack->addWidget(game_widget);
-
-    // Index 2: 系统设置
-    SettingWidget* setting = new SettingWidget(center);
-    m_stack->addWidget(setting);
 
     // 绑定侧边栏切换信号
     connect(m_leftList_btns, QOverload<int>::of(&QButtonGroup::buttonClicked),

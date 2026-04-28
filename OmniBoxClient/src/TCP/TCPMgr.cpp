@@ -8,11 +8,12 @@
 #include <QFileInfo>
 #include "Macro.h"
 #include "Global.h"
+#include "UserMgr.h"
 
 TCPMgr::TCPMgr(QObject* parent) : QObject(parent)
 {
-    m_Host = "127.0.0.1";
-    m_Port = 5486;
+    m_Host = "192.168.31.51";
+    m_Port = 8001;
 
     InitTcpSocket();
     InitHearbeatTimer();
@@ -88,30 +89,40 @@ void TCPMgr::InitHandlers()
     // ------------------------------------------------------------------
     // 注册 [登录响应] 的处理逻辑
     // ------------------------------------------------------------------
-    m_router[ServerApi::ID_LOGIN_RSP] = [this](const ServerApi::PacketHeader& header, const QByteArray& bodyData) {
-        // 1. 检查 Header 里的全局错误码
-        if (header.error_code() != ServerApi::ErrorCode::ERR_SUCCESS) 
+    m_router[omnibox::ID_LOGIN_RSP] = [this](const omnibox::PacketHeader& header, const QByteArray& bodyData)
         {
-            qDebug() << u8"[TCPMgr] 登录失败:" << header.error_msg().c_str();
-            emit SigLoginFailed(header.error_code(), QString::fromStdString(header.error_msg()));
-            return;
-        }
+            // 1. 检查 Header 里的全局错误码
+            if (header.error_code() != omnibox::ErrorCode::ERR_SUCCESS) 
+            {
+                // 登录失败，关闭连接
+                m_TcpSocket->disconnectFromHost();
 
-        // 2. 错误码为0，解析 Body 拿业务数据
-        ServerApi::LoginRsp rsp;
-        if (rsp.ParseFromArray(bodyData.data(), bodyData.size()))
-        {
-            qDebug() << u8"[TCPMgr] 登录成功! 服务器时间:" << rsp.server_time();
+                // 转发登录失败信号
+                qDebug() << u8"[TCPMgr] 登录失败:" << header.error_msg().c_str();
+                emit SigLoginFailed(header.error_code(), QString::fromStdString(header.error_msg()));
 
-            StartHeartBeat();                                                           // 登录成功后启动心跳保活
-            emit SigLoginSuccess();
-        }
+                return;
+            }
+
+            // 2. 错误码为0，解析 Body 拿业务数据
+            omnibox::LoginResponse rsp;
+            if (rsp.ParseFromArray(bodyData.data(), bodyData.size()))
+            {
+                qDebug() << u8"[TCPMgr] 登录成功!";
+
+                // 登录成功初始化user信息
+                UserMgr::Instance()->SetToken(QString::fromStdString(rsp.token()));
+                UserMgr::Instance()->SetId(rsp.user_id());
+
+                StartHeartBeat();                                                           // 登录成功后启动心跳保活
+                emit SigLoginSuccess();
+            }
         };
 
     // ------------------------------------------------------------------
     // 注册 [心跳响应] 的处理逻辑
     // ------------------------------------------------------------------
-    m_router[ServerApi::ID_HEARTBEAT] = [this](const ServerApi::PacketHeader& header, const QByteArray& bodyData) {
+    m_router[omnibox::ID_HEARTBEAT] = [this](const omnibox::PacketHeader& header, const QByteArray& bodyData) {
         // 一般心跳不需要复杂处理，只需知道服务器活着即可
         // qDebug() << "[TCPMgr] 收到服务器心跳回应";
         };
@@ -126,7 +137,8 @@ void TCPMgr::onReadyRead()
     m_buffer.append(m_TcpSocket->readAll());
 
     // 只要缓存区大于等于 4 字节，说明至少包含了一个 TotalLen 的头
-    while (m_buffer.size() >= 4) {
+    while (m_buffer.size() >= 4) 
+    {
         QDataStream stream(&m_buffer, QIODevice::ReadOnly);
         stream.setByteOrder(QDataStream::BigEndian);                                    // 统一大端网络字节序
 
@@ -139,13 +151,12 @@ void TCPMgr::onReadyRead()
         }
 
         // --- 此时我们已经拥有了一个完美、完整的物理包！ ---
-
         quint16 headerLen;
         stream >> headerLen;                                                            // 读出 Header 的长度 (2字节)
 
         // 截取 RpcHeader 的字节流，并反序列化
         QByteArray headerData = m_buffer.mid(6, headerLen);
-        ServerApi::PacketHeader header;
+        omnibox::PacketHeader header;
 
         if (header.ParseFromArray(headerData.data(), headerData.size())) {
             // 根据公式算出 Body 的长度，并截取 Body
@@ -153,7 +164,7 @@ void TCPMgr::onReadyRead()
             QByteArray bodyData = m_buffer.mid(6 + headerLen, bodyLen);
 
             // O(1) 复杂度的极速路由分发
-            ServerApi::MsgId msgId = header.msg_id();
+            omnibox::MsgId msgId = header.msg_id();
             if (m_router.contains(msgId)) {
                 m_router[msgId](header, bodyData);                                      // 触发你写的 Lambda 回调
             }
@@ -173,7 +184,7 @@ void TCPMgr::onReadyRead()
 // =========================================================================================
 // 4. 核心：多线程安全的封包发送引擎
 // =========================================================================================
-void TCPMgr::SendProtoMsg(ServerApi::MsgId msgId, const google::protobuf::Message& protoMsg, uint64_t seqId)
+void TCPMgr::SendProtoMsg(omnibox::MsgId msgId, const google::protobuf::Message& protoMsg, uint64_t seqId)
 {
     // 1. 将业务 Message 序列化为 Body 字节流
     QByteArray bodyData;
@@ -181,7 +192,7 @@ void TCPMgr::SendProtoMsg(ServerApi::MsgId msgId, const google::protobuf::Messag
     protoMsg.SerializeToArray(bodyData.data(), bodyData.size());
 
     // 2. 组装并序列化 PacketHeader
-    ServerApi::PacketHeader header;
+    omnibox::PacketHeader header;
     header.set_msg_id(msgId);
     header.set_seq_id(seqId);
     // error_code 客户端发给服务端一般默认0，由服务端填错误码
@@ -232,11 +243,11 @@ void TCPMgr::SlotTcpConnect()
 
 void TCPMgr::Login(QString username, QString password)
 {
-    ServerApi::LoginReq login_req;
+    omnibox::LoginRequest login_req;
     login_req.set_username(username.toStdString());
     login_req.set_password(password.toStdString());
 
-    SendProtoMsg(ServerApi::MsgId::ID_LOGIN_REQ, login_req);
+    SendProtoMsg(omnibox::MsgId::ID_LOGIN_REQ, login_req);
 }
 
 void TCPMgr::AccountLoginOut()
@@ -265,8 +276,7 @@ void TCPMgr::StopHeartBeat()
 void TCPMgr::onHeartbeatTick()
 {
     // 发送心跳包
-    ServerApi::Heartbeat hb;
-    hb.set_timestamp(QDateTime::currentMSecsSinceEpoch());
+    omnibox::HeartbeatRequest hb;
 
-    SendProtoMsg(ServerApi::ID_HEARTBEAT, hb);
+    SendProtoMsg(omnibox::ID_HEARTBEAT, hb);
 }

@@ -52,22 +52,25 @@ struct TableStruct_common_2eproto {
 };
 extern const ::google::protobuf::internal::DescriptorTable
     descriptor_table_common_2eproto;
-namespace ServerApi {
+namespace omnibox {
 class PacketHeader;
 struct PacketHeaderDefaultTypeInternal;
 extern PacketHeaderDefaultTypeInternal _PacketHeader_default_instance_;
-}  // namespace ServerApi
+class RpcHeader;
+struct RpcHeaderDefaultTypeInternal;
+extern RpcHeaderDefaultTypeInternal _RpcHeader_default_instance_;
+}  // namespace omnibox
 namespace google {
 namespace protobuf {
 }  // namespace protobuf
 }  // namespace google
 
-namespace ServerApi {
+namespace omnibox {
 enum MsgId : int {
-  ID_NONE = 0,
+  ID_UNKNOWN = 0,
+  ID_HEARTBEAT = 1,
   ID_LOGIN_REQ = 1001,
   ID_LOGIN_RSP = 1002,
-  ID_HEARTBEAT = 1003,
   MsgId_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   MsgId_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -77,8 +80,8 @@ enum MsgId : int {
 bool MsgId_IsValid(int value);
 extern const uint32_t MsgId_internal_data_[];
 constexpr MsgId MsgId_MIN = static_cast<MsgId>(0);
-constexpr MsgId MsgId_MAX = static_cast<MsgId>(1003);
-constexpr int MsgId_ARRAYSIZE = 1003 + 1;
+constexpr MsgId MsgId_MAX = static_cast<MsgId>(1002);
+constexpr int MsgId_ARRAYSIZE = 1002 + 1;
 const ::google::protobuf::EnumDescriptor*
 MsgId_descriptor();
 template <typename T>
@@ -98,6 +101,8 @@ enum ErrorCode : int {
   ERR_WRONG_PWD = 2,
   ERR_ACCOUNT_IN_USE = 3,
   ERR_ACCOUNT_EXPIRED = 4,
+  ERR_USER_NOT_FOUND = 5,
+  ERR_ACCOUNT_BANNED = 6,
   ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -107,8 +112,8 @@ enum ErrorCode : int {
 bool ErrorCode_IsValid(int value);
 extern const uint32_t ErrorCode_internal_data_[];
 constexpr ErrorCode ErrorCode_MIN = static_cast<ErrorCode>(0);
-constexpr ErrorCode ErrorCode_MAX = static_cast<ErrorCode>(4);
-constexpr int ErrorCode_ARRAYSIZE = 4 + 1;
+constexpr ErrorCode ErrorCode_MAX = static_cast<ErrorCode>(6);
+constexpr int ErrorCode_ARRAYSIZE = 6 + 1;
 const ::google::protobuf::EnumDescriptor*
 ErrorCode_descriptor();
 template <typename T>
@@ -121,7 +126,7 @@ const std::string& ErrorCode_Name(T value) {
 template <>
 inline const std::string& ErrorCode_Name(ErrorCode value) {
   return ::google::protobuf::internal::NameOfDenseEnum<ErrorCode_descriptor,
-                                                 0, 4>(
+                                                 0, 6>(
       static_cast<int>(value));
 }
 inline bool ErrorCode_Parse(absl::string_view name, ErrorCode* value) {
@@ -134,8 +139,258 @@ inline bool ErrorCode_Parse(absl::string_view name, ErrorCode* value) {
 
 // -------------------------------------------------------------------
 
+class RpcHeader final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:omnibox.RpcHeader) */ {
+ public:
+  inline RpcHeader() : RpcHeader(nullptr) {}
+  ~RpcHeader() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(RpcHeader* msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(RpcHeader));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR RpcHeader(
+      ::google::protobuf::internal::ConstantInitialized);
+
+  inline RpcHeader(const RpcHeader& from) : RpcHeader(nullptr, from) {}
+  inline RpcHeader(RpcHeader&& from) noexcept
+      : RpcHeader(nullptr, std::move(from)) {}
+  inline RpcHeader& operator=(const RpcHeader& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RpcHeader& operator=(RpcHeader&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RpcHeader& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RpcHeader* internal_default_instance() {
+    return reinterpret_cast<const RpcHeader*>(
+        &_RpcHeader_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 1;
+  friend void swap(RpcHeader& a, RpcHeader& b) { a.Swap(&b); }
+  inline void Swap(RpcHeader* other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RpcHeader* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RpcHeader* New(::google::protobuf::Arena* arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<RpcHeader>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const RpcHeader& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const RpcHeader& from) { RpcHeader::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(
+      ::google::protobuf::MessageLite& to_msg,
+      const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* _InternalSerialize(
+      const MessageLite& msg, ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(RpcHeader* other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(
+      ::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "omnibox.RpcHeader"; }
+
+ protected:
+  explicit RpcHeader(::google::protobuf::Arena* arena);
+  RpcHeader(::google::protobuf::Arena* arena, const RpcHeader& from);
+  RpcHeader(::google::protobuf::Arena* arena, RpcHeader&& from) noexcept
+      : RpcHeader(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* GetClassData() const PROTOBUF_FINAL;
+  static void* PlacementNew_(const void*, void* mem,
+                             ::google::protobuf::Arena* arena);
+  static constexpr auto InternalNewImpl_();
+  static const ::google::protobuf::internal::ClassDataFull _class_data_;
+
+ public:
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kServiceNameFieldNumber = 1,
+    kMethodNameFieldNumber = 2,
+    kMethodIndexFieldNumber = 3,
+    kArgsSizeFieldNumber = 4,
+    kSeqIdFieldNumber = 5,
+  };
+  // string service_name = 1;
+  void clear_service_name() ;
+  const std::string& service_name() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_service_name(Arg_&& arg, Args_... args);
+  std::string* mutable_service_name();
+  PROTOBUF_NODISCARD std::string* release_service_name();
+  void set_allocated_service_name(std::string* value);
+
+  private:
+  const std::string& _internal_service_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_service_name(
+      const std::string& value);
+  std::string* _internal_mutable_service_name();
+
+  public:
+  // string method_name = 2;
+  void clear_method_name() ;
+  const std::string& method_name() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_method_name(Arg_&& arg, Args_... args);
+  std::string* mutable_method_name();
+  PROTOBUF_NODISCARD std::string* release_method_name();
+  void set_allocated_method_name(std::string* value);
+
+  private:
+  const std::string& _internal_method_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_method_name(
+      const std::string& value);
+  std::string* _internal_mutable_method_name();
+
+  public:
+  // uint32 method_index = 3;
+  void clear_method_index() ;
+  ::uint32_t method_index() const;
+  void set_method_index(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_method_index() const;
+  void _internal_set_method_index(::uint32_t value);
+
+  public:
+  // uint32 args_size = 4;
+  void clear_args_size() ;
+  ::uint32_t args_size() const;
+  void set_args_size(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_args_size() const;
+  void _internal_set_args_size(::uint32_t value);
+
+  public:
+  // uint64 seq_id = 5;
+  void clear_seq_id() ;
+  ::uint64_t seq_id() const;
+  void set_seq_id(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_seq_id() const;
+  void _internal_set_seq_id(::uint64_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:omnibox.RpcHeader)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      3, 5, 0,
+      49, 2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(
+        ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena);
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena, const Impl_& from,
+                          const RpcHeader& from_msg);
+    ::google::protobuf::internal::ArenaStringPtr service_name_;
+    ::google::protobuf::internal::ArenaStringPtr method_name_;
+    ::uint32_t method_index_;
+    ::uint32_t args_size_;
+    ::uint64_t seq_id_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_common_2eproto;
+};
+// -------------------------------------------------------------------
+
 class PacketHeader final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:ServerApi.PacketHeader) */ {
+/* @@protoc_insertion_point(class_definition:omnibox.PacketHeader) */ {
  public:
   inline PacketHeader() : PacketHeader(nullptr) {}
   ~PacketHeader() PROTOBUF_FINAL;
@@ -259,7 +514,7 @@ class PacketHeader final : public ::google::protobuf::Message
   template <typename T>
   friend ::absl::string_view(
       ::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "ServerApi.PacketHeader"; }
+  static ::absl::string_view FullMessageName() { return "omnibox.PacketHeader"; }
 
  protected:
   explicit PacketHeader(::google::protobuf::Arena* arena);
@@ -311,33 +566,33 @@ class PacketHeader final : public ::google::protobuf::Message
   void _internal_set_seq_id(::uint64_t value);
 
   public:
-  // .ServerApi.MsgId msg_id = 1;
+  // .omnibox.MsgId msg_id = 1;
   void clear_msg_id() ;
-  ::ServerApi::MsgId msg_id() const;
-  void set_msg_id(::ServerApi::MsgId value);
+  ::omnibox::MsgId msg_id() const;
+  void set_msg_id(::omnibox::MsgId value);
 
   private:
-  ::ServerApi::MsgId _internal_msg_id() const;
-  void _internal_set_msg_id(::ServerApi::MsgId value);
+  ::omnibox::MsgId _internal_msg_id() const;
+  void _internal_set_msg_id(::omnibox::MsgId value);
 
   public:
-  // .ServerApi.ErrorCode error_code = 3;
+  // .omnibox.ErrorCode error_code = 3;
   void clear_error_code() ;
-  ::ServerApi::ErrorCode error_code() const;
-  void set_error_code(::ServerApi::ErrorCode value);
+  ::omnibox::ErrorCode error_code() const;
+  void set_error_code(::omnibox::ErrorCode value);
 
   private:
-  ::ServerApi::ErrorCode _internal_error_code() const;
-  void _internal_set_error_code(::ServerApi::ErrorCode value);
+  ::omnibox::ErrorCode _internal_error_code() const;
+  void _internal_set_error_code(::omnibox::ErrorCode value);
 
   public:
-  // @@protoc_insertion_point(class_scope:ServerApi.PacketHeader)
+  // @@protoc_insertion_point(class_scope:omnibox.PacketHeader)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
       2, 4, 0,
-      40, 2>
+      38, 2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -381,24 +636,24 @@ class PacketHeader final : public ::google::protobuf::Message
 
 // PacketHeader
 
-// .ServerApi.MsgId msg_id = 1;
+// .omnibox.MsgId msg_id = 1;
 inline void PacketHeader::clear_msg_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.msg_id_ = 0;
 }
-inline ::ServerApi::MsgId PacketHeader::msg_id() const {
-  // @@protoc_insertion_point(field_get:ServerApi.PacketHeader.msg_id)
+inline ::omnibox::MsgId PacketHeader::msg_id() const {
+  // @@protoc_insertion_point(field_get:omnibox.PacketHeader.msg_id)
   return _internal_msg_id();
 }
-inline void PacketHeader::set_msg_id(::ServerApi::MsgId value) {
+inline void PacketHeader::set_msg_id(::omnibox::MsgId value) {
   _internal_set_msg_id(value);
-  // @@protoc_insertion_point(field_set:ServerApi.PacketHeader.msg_id)
+  // @@protoc_insertion_point(field_set:omnibox.PacketHeader.msg_id)
 }
-inline ::ServerApi::MsgId PacketHeader::_internal_msg_id() const {
+inline ::omnibox::MsgId PacketHeader::_internal_msg_id() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return static_cast<::ServerApi::MsgId>(_impl_.msg_id_);
+  return static_cast<::omnibox::MsgId>(_impl_.msg_id_);
 }
-inline void PacketHeader::_internal_set_msg_id(::ServerApi::MsgId value) {
+inline void PacketHeader::_internal_set_msg_id(::omnibox::MsgId value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.msg_id_ = value;
 }
@@ -409,12 +664,12 @@ inline void PacketHeader::clear_seq_id() {
   _impl_.seq_id_ = ::uint64_t{0u};
 }
 inline ::uint64_t PacketHeader::seq_id() const {
-  // @@protoc_insertion_point(field_get:ServerApi.PacketHeader.seq_id)
+  // @@protoc_insertion_point(field_get:omnibox.PacketHeader.seq_id)
   return _internal_seq_id();
 }
 inline void PacketHeader::set_seq_id(::uint64_t value) {
   _internal_set_seq_id(value);
-  // @@protoc_insertion_point(field_set:ServerApi.PacketHeader.seq_id)
+  // @@protoc_insertion_point(field_set:omnibox.PacketHeader.seq_id)
 }
 inline ::uint64_t PacketHeader::_internal_seq_id() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -425,24 +680,24 @@ inline void PacketHeader::_internal_set_seq_id(::uint64_t value) {
   _impl_.seq_id_ = value;
 }
 
-// .ServerApi.ErrorCode error_code = 3;
+// .omnibox.ErrorCode error_code = 3;
 inline void PacketHeader::clear_error_code() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.error_code_ = 0;
 }
-inline ::ServerApi::ErrorCode PacketHeader::error_code() const {
-  // @@protoc_insertion_point(field_get:ServerApi.PacketHeader.error_code)
+inline ::omnibox::ErrorCode PacketHeader::error_code() const {
+  // @@protoc_insertion_point(field_get:omnibox.PacketHeader.error_code)
   return _internal_error_code();
 }
-inline void PacketHeader::set_error_code(::ServerApi::ErrorCode value) {
+inline void PacketHeader::set_error_code(::omnibox::ErrorCode value) {
   _internal_set_error_code(value);
-  // @@protoc_insertion_point(field_set:ServerApi.PacketHeader.error_code)
+  // @@protoc_insertion_point(field_set:omnibox.PacketHeader.error_code)
 }
-inline ::ServerApi::ErrorCode PacketHeader::_internal_error_code() const {
+inline ::omnibox::ErrorCode PacketHeader::_internal_error_code() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return static_cast<::ServerApi::ErrorCode>(_impl_.error_code_);
+  return static_cast<::omnibox::ErrorCode>(_impl_.error_code_);
 }
-inline void PacketHeader::_internal_set_error_code(::ServerApi::ErrorCode value) {
+inline void PacketHeader::_internal_set_error_code(::omnibox::ErrorCode value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.error_code_ = value;
 }
@@ -454,7 +709,7 @@ inline void PacketHeader::clear_error_msg() {
 }
 inline const std::string& PacketHeader::error_msg() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:ServerApi.PacketHeader.error_msg)
+  // @@protoc_insertion_point(field_get:omnibox.PacketHeader.error_msg)
   return _internal_error_msg();
 }
 template <typename Arg_, typename... Args_>
@@ -462,11 +717,11 @@ inline PROTOBUF_ALWAYS_INLINE void PacketHeader::set_error_msg(Arg_&& arg,
                                                      Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.error_msg_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:ServerApi.PacketHeader.error_msg)
+  // @@protoc_insertion_point(field_set:omnibox.PacketHeader.error_msg)
 }
 inline std::string* PacketHeader::mutable_error_msg() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   std::string* _s = _internal_mutable_error_msg();
-  // @@protoc_insertion_point(field_mutable:ServerApi.PacketHeader.error_msg)
+  // @@protoc_insertion_point(field_mutable:omnibox.PacketHeader.error_msg)
   return _s;
 }
 inline const std::string& PacketHeader::_internal_error_msg() const {
@@ -483,7 +738,7 @@ inline std::string* PacketHeader::_internal_mutable_error_msg() {
 }
 inline std::string* PacketHeader::release_error_msg() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:ServerApi.PacketHeader.error_msg)
+  // @@protoc_insertion_point(field_release:omnibox.PacketHeader.error_msg)
   return _impl_.error_msg_.Release();
 }
 inline void PacketHeader::set_allocated_error_msg(std::string* value) {
@@ -492,7 +747,173 @@ inline void PacketHeader::set_allocated_error_msg(std::string* value) {
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.error_msg_.IsDefault()) {
     _impl_.error_msg_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:ServerApi.PacketHeader.error_msg)
+  // @@protoc_insertion_point(field_set_allocated:omnibox.PacketHeader.error_msg)
+}
+
+// -------------------------------------------------------------------
+
+// RpcHeader
+
+// string service_name = 1;
+inline void RpcHeader::clear_service_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_name_.ClearToEmpty();
+}
+inline const std::string& RpcHeader::service_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:omnibox.RpcHeader.service_name)
+  return _internal_service_name();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void RpcHeader::set_service_name(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:omnibox.RpcHeader.service_name)
+}
+inline std::string* RpcHeader::mutable_service_name() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_service_name();
+  // @@protoc_insertion_point(field_mutable:omnibox.RpcHeader.service_name)
+  return _s;
+}
+inline const std::string& RpcHeader::_internal_service_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.service_name_.Get();
+}
+inline void RpcHeader::_internal_set_service_name(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_name_.Set(value, GetArena());
+}
+inline std::string* RpcHeader::_internal_mutable_service_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.service_name_.Mutable( GetArena());
+}
+inline std::string* RpcHeader::release_service_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:omnibox.RpcHeader.service_name)
+  return _impl_.service_name_.Release();
+}
+inline void RpcHeader::set_allocated_service_name(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.service_name_.IsDefault()) {
+    _impl_.service_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:omnibox.RpcHeader.service_name)
+}
+
+// string method_name = 2;
+inline void RpcHeader::clear_method_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_name_.ClearToEmpty();
+}
+inline const std::string& RpcHeader::method_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:omnibox.RpcHeader.method_name)
+  return _internal_method_name();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void RpcHeader::set_method_name(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:omnibox.RpcHeader.method_name)
+}
+inline std::string* RpcHeader::mutable_method_name() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_method_name();
+  // @@protoc_insertion_point(field_mutable:omnibox.RpcHeader.method_name)
+  return _s;
+}
+inline const std::string& RpcHeader::_internal_method_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.method_name_.Get();
+}
+inline void RpcHeader::_internal_set_method_name(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_name_.Set(value, GetArena());
+}
+inline std::string* RpcHeader::_internal_mutable_method_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.method_name_.Mutable( GetArena());
+}
+inline std::string* RpcHeader::release_method_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:omnibox.RpcHeader.method_name)
+  return _impl_.method_name_.Release();
+}
+inline void RpcHeader::set_allocated_method_name(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.method_name_.IsDefault()) {
+    _impl_.method_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:omnibox.RpcHeader.method_name)
+}
+
+// uint32 method_index = 3;
+inline void RpcHeader::clear_method_index() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_index_ = 0u;
+}
+inline ::uint32_t RpcHeader::method_index() const {
+  // @@protoc_insertion_point(field_get:omnibox.RpcHeader.method_index)
+  return _internal_method_index();
+}
+inline void RpcHeader::set_method_index(::uint32_t value) {
+  _internal_set_method_index(value);
+  // @@protoc_insertion_point(field_set:omnibox.RpcHeader.method_index)
+}
+inline ::uint32_t RpcHeader::_internal_method_index() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.method_index_;
+}
+inline void RpcHeader::_internal_set_method_index(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_index_ = value;
+}
+
+// uint32 args_size = 4;
+inline void RpcHeader::clear_args_size() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.args_size_ = 0u;
+}
+inline ::uint32_t RpcHeader::args_size() const {
+  // @@protoc_insertion_point(field_get:omnibox.RpcHeader.args_size)
+  return _internal_args_size();
+}
+inline void RpcHeader::set_args_size(::uint32_t value) {
+  _internal_set_args_size(value);
+  // @@protoc_insertion_point(field_set:omnibox.RpcHeader.args_size)
+}
+inline ::uint32_t RpcHeader::_internal_args_size() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.args_size_;
+}
+inline void RpcHeader::_internal_set_args_size(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.args_size_ = value;
+}
+
+// uint64 seq_id = 5;
+inline void RpcHeader::clear_seq_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.seq_id_ = ::uint64_t{0u};
+}
+inline ::uint64_t RpcHeader::seq_id() const {
+  // @@protoc_insertion_point(field_get:omnibox.RpcHeader.seq_id)
+  return _internal_seq_id();
+}
+inline void RpcHeader::set_seq_id(::uint64_t value) {
+  _internal_set_seq_id(value);
+  // @@protoc_insertion_point(field_set:omnibox.RpcHeader.seq_id)
+}
+inline ::uint64_t RpcHeader::_internal_seq_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.seq_id_;
+}
+inline void RpcHeader::_internal_set_seq_id(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.seq_id_ = value;
 }
 
 #ifdef __GNUC__
@@ -500,23 +921,23 @@ inline void PacketHeader::set_allocated_error_msg(std::string* value) {
 #endif  // __GNUC__
 
 // @@protoc_insertion_point(namespace_scope)
-}  // namespace ServerApi
+}  // namespace omnibox
 
 
 namespace google {
 namespace protobuf {
 
 template <>
-struct is_proto_enum<::ServerApi::MsgId> : std::true_type {};
+struct is_proto_enum<::omnibox::MsgId> : std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor<::ServerApi::MsgId>() {
-  return ::ServerApi::MsgId_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor<::omnibox::MsgId>() {
+  return ::omnibox::MsgId_descriptor();
 }
 template <>
-struct is_proto_enum<::ServerApi::ErrorCode> : std::true_type {};
+struct is_proto_enum<::omnibox::ErrorCode> : std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor<::ServerApi::ErrorCode>() {
-  return ::ServerApi::ErrorCode_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor<::omnibox::ErrorCode>() {
+  return ::omnibox::ErrorCode_descriptor();
 }
 
 }  // namespace protobuf

@@ -3,7 +3,6 @@
 #include "LoginWidget.h"
 #include "ControlHubWindow.h"
 #include "Titlebar.h"
-#include "SignalSend.h"
 #include "JsonTool.h"
 #include "Global.h"
 #include "ThreadPool.h"

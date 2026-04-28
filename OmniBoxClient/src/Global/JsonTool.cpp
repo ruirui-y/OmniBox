@@ -8,6 +8,7 @@
 #include <QJsonArray>
 #include <QString>
 #include <QStringList>
+#include "UserMgr.h"
 
 
 JsonTool::JsonTool(QObject *parent)
@@ -81,15 +82,15 @@ bool JsonTool::writeJsonFile(const QString& path, const QJsonDocument& inDoc, QS
     return true;
 }
 
-bool JsonTool::ConversionJsonToUserInfo(const QJsonObject& jsonObj, UserInfo& userinfo)
+bool JsonTool::ConversionJsonToUserInfo(const QJsonObject& jsonObj)
 {
     // 解析基本用户信息
     if (jsonObj.contains("UserName")) {
-        userinfo.UserName = jsonObj["UserName"].toString();
+        UserMgr::Instance()->SetUserName(jsonObj["UserName"].toString());
     }
 
     if (jsonObj.contains("Password")) {
-        userinfo.Password = jsonObj["Password"].toString();
+        UserMgr::Instance()->SetPassword(jsonObj["Password"].toString());
     }
     return true;
 }
@@ -124,24 +125,4 @@ bool JsonTool::clearJsonFile(const QString& path)
 
     QJsonDocument jsonDoc = QJsonDocument(obj);
     return writeJsonFile(path, jsonDoc, nullptr);
-}
-
-bool JsonTool::ParseGameObject(const QJsonObject& obj, GameData& outGame, QString* warn)
-{
-    const QString name = obj.value(QStringLiteral("name")).toString().trimmed();
-    if (name.isEmpty())
-    {
-        if (warn) *warn = QStringLiteral("存在缺少 name 的游戏条目，已跳过");
-        return false;
-    }
-
-    int minp = obj.value(QStringLiteral("min_players")).toInt(1);
-
-    int maxp = obj.value(QStringLiteral("max_players")).toInt(1);
-    if (maxp < 1) maxp = 1;
-
-    outGame.GameName = name;
-    outGame.MinPlayers = minp;
-    outGame.MaxPlayers = maxp;
-    return true;
 }

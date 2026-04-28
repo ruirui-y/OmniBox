@@ -14,7 +14,7 @@
 // 全新路由回调定义：
 // 直接传入解析好的 Header (用于获取 seq_id 和状态) 以及待解析的 Body 二进制流
 // =========================================================================================
-using MsgHandler = std::function<void(const ServerApi::PacketHeader& header, const QByteArray& bodyData)>;
+using MsgHandler = std::function<void(const omnibox::PacketHeader& header, const QByteArray& bodyData)>;
 
 class TCPMgr : public QObject
 {
@@ -30,7 +30,7 @@ public:
     void AccountLoginOut();
 
     // 泛型发送接口：只要传入 MsgId 和任意 Protobuf Message，自动封包并发送
-    void SendProtoMsg(ServerApi::MsgId msgId, const google::protobuf::Message& protoMsg, uint64_t seqId = 0);
+    void SendProtoMsg(omnibox::MsgId msgId, const google::protobuf::Message& protoMsg, uint64_t seqId = 0);
 
 public slots:
     void SlotTcpConnect();
@@ -67,7 +67,7 @@ private:
     QByteArray m_buffer;
 
     // 终极 O(1) 路由表
-    QMap<ServerApi::MsgId, MsgHandler> m_router;
+    QMap<omnibox::MsgId, MsgHandler> m_router;
 };
 
 #endif // TCPMGR_H

@@ -24,7 +24,12 @@ GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint1
     RegisterHandler(ID_LOGIN_REQ, std::bind(&GatewayTcpServer::HandleLoginReq, this, _1, _2,_3));
 
     // 建立长连接
-    login_channel_ = std::make_shared<MyChannel>("127.0.0.1", 9090);
+
+    // 1. 启动一个专门针对后端微服务通信的后台 IO 线程
+    rpc_client_thread_ = std::make_unique<EventLoopThread>();
+    rpc_client_loop_ = rpc_client_thread_->StartLoop();
+
+    login_channel_ = std::make_shared<MyChannel>(rpc_client_loop_, "127.0.0.1", 9090);
     //transfer_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8082);
     //meta_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8090);
 

@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
+#include <mymuduo/net/ThreadSwitcher.h>
 #include <mymuduo/Log/Logger.h>
 #include <vector>
 #include <endian.h>
@@ -13,38 +14,19 @@
 
 using namespace std::placeholders;
 
-MyChannel::MyChannel(const std::string& ip, int port)
-    : ip_(ip), port_(port), loop_(nullptr)
+MyChannel::MyChannel(EventLoop* loop, const std::string& ip, int port)
+    : loop_(loop), ip_(ip), port_(port)
 {
-    // 1. 准备一个信使，用来跨线程传递 EventLoop 的指针
-    std::promise<EventLoop*> prom;
-    std::future<EventLoop*> fut = prom.get_future();
-
-    // 2. 启动后台大管家线程
-    loop_thread_ = std::thread([&prom]() {
-        // 核心：EventLoop 真正诞生在后台线程！它完全属于这个线程！
-        EventLoop loop;
-
-        // 把生出来的 loop 指针通过信使递给外面的主线程
-        prom.set_value(&loop);
-
-        // 死循环阻塞在这里，直到被人调用 Quit()
-        loop.Loop();
-        });
-
-    // 3. 主线程阻塞在这里等待，直到收到后台线程递出来的指针
-    loop_ = fut.get();
-
-    // 4. 现在 loop_ 已经是绝对安全的了，用它来创建非阻塞客户端
+    // 1. 直接使用传进来的 loop 创建客户端
     client_.reset(new TcpClient(loop_, ip_, port_, "RpcClient"));
 
-    // 5. 绑定回调
+    // 2. 绑定回调
     using std::placeholders::_1;
     using std::placeholders::_2;
     client_->SetConnectionCallback(std::bind(&MyChannel::OnConnection, this, _1));
     client_->SetMessageCallback(std::bind(&MyChannel::OnMessage, this, _1, _2));
 
-    // 6. 发起异步连接 (Connect 内部极其安全，它会通过 RunInLoop 投递给后台线程去执行底层 connect)
+    // 3. 发起异步连接
     client_->Connect();
 }
 
@@ -65,7 +47,6 @@ MyChannel::~MyChannel()
 
 void MyChannel::OnConnection(const TcpConnectionPtr& conn)
 {
-    std::lock_guard<std::mutex> lock(conn_mutex_);
     if (conn->Connected()) 
     {
         conn_ = conn;
@@ -115,14 +96,11 @@ void MyChannel::OnMessage(const TcpConnectionPtr& conn, Buffer* buffer)
         
         // 6. 查找对应的回调上下文
         CallContext ctx;
+        auto it = pending_calls_.find(seq_id);
+        if (it != pending_calls_.end())
         {
-            std::lock_guard<std::mutex> lock(map_mutex_);
-            auto it = pending_calls_.find(seq_id);
-            if (it != pending_calls_.end()) 
-            {
-                ctx = it->second;
-                pending_calls_.erase(it);
-            }
+            ctx = it->second;
+            pending_calls_.erase(it);
         }
 
         if (ctx.response && ctx.done) 
@@ -170,30 +148,17 @@ void MyChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     send_rpc_str += header_str;
     send_rpc_str += request_str;
 
-    // 5. 登记回调上下文
-    {
-        // 去总台登记：单号 seq_id 对应的凭证是 发送完成的回调
-        std::lock_guard<std::mutex> lock(map_mutex_);
-        pending_calls_[seq_id] = { response, done };
-    }
+    // 5. 登记回调上下文，投递到事件循环去操作
+    ThreadSwitcher::Run(loop_, [this, controller, done, seq_id, response, send_rpc_str]()
+        {
+            if (!conn_ || !conn_->Connected())
+            {
+                if (controller) controller->SetFailed("Connection is down!");
+                if (done) done->Run();
+                return;
+            }
 
-    // 6. 加锁发送，防止多个工作线程同时写 Socket 导致数据错乱
-    TcpConnectionPtr active_conn;
-    {
-        std::lock_guard<std::mutex> lock(conn_mutex_);
-        active_conn = conn_;
-    }
-
-    if (active_conn && active_conn->Connected())
-    {
-        // 这一句瞬间返回！如果网卡满了，Muduo 会自动塞进它的内存 Buffer 并交给 epoll 排队发送
-        active_conn->Send(send_rpc_str);
-    }
-    else
-    {
-        if (controller) controller->SetFailed("Connection is down!");
-        std::lock_guard<std::mutex> lock(map_mutex_);
-        pending_calls_.erase(seq_id);
-        return;
-    }
+            pending_calls_[seq_id] = { response, done };
+            conn_->Send(send_rpc_str);
+        });
 }

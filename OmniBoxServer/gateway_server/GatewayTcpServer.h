@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <mymuduo/net/EventLoopThread.h>
 #include <mymuduo/base/ThreadPool.h>
 #include "MyChannel.h"
 #include "common.pb.h"
@@ -51,7 +52,9 @@ private:
     std::unordered_map<int32_t, std::shared_ptr<TcpConnection>> user_sessions_;
     std::unordered_map<uint32_t, MsgHandler> msg_dispatcher_;                                                           // 事件分发
 
-    // 网关全局共享的rpc通道
+    // 网关全局共享的rpc通信线程以及rpc通道
+    std::unique_ptr<EventLoopThread> rpc_client_thread_;
+    EventLoop* rpc_client_loop_;
     std::shared_ptr<MyChannel> login_channel_;
     std::shared_ptr<MyChannel> transfer_channel_;
     std::shared_ptr<MyChannel> meta_channel_;

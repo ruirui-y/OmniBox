@@ -26,7 +26,7 @@ GatewayHttpServer::GatewayHttpServer(EventLoop* loop, const std::string& ip, uin
     server_.SetMessageCallback(std::bind(&GatewayHttpServer::OnMessage, this, _1, _2));
 
     // 2. 👑 自己创建打向后端微服务的 RPC 通道 (独立连接)
-    login_channel_ = std::make_shared<MyChannel>("127.0.0.1", 9090);
+    // login_channel_ = std::make_shared<MyChannel>("127.0.0.1", 9090);
     // transfer_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8082);                                              
     // meta_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8090);                                                  
 

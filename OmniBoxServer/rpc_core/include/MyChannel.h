@@ -18,7 +18,7 @@
 class MyChannel : public google::protobuf::RpcChannel
 {
 public:
-    MyChannel(const std::string& ip, int port);
+    MyChannel(EventLoop* loop, const std::string& ip, int port);
     ~MyChannel();
 
 public:
@@ -42,7 +42,6 @@ private:
     std::unique_ptr<TcpClient> client_;
 
     TcpConnectionPtr conn_;
-    std::mutex conn_mutex_;
 
     struct CallContext
     {
@@ -50,7 +49,7 @@ private:
         google::protobuf::Closure* done;
     };
 
-    std::mutex map_mutex_;                                                                      // 保护Map 的 锁
+    // 绑定回调操作全部投递到事件循环中
     std::unordered_map<uint64_t, CallContext> pending_calls_;                                   // 快递单号映射表
 
     inline static std::atomic<uint64_t> seq_id_allocator_{ 1 };                                 // 1. 全局唯一的流水号生成器

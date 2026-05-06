@@ -85,12 +85,14 @@ enum MsgId : int {
   ID_MOVE_NODE_RSP = 3010,
   ID_LIST_DIR_REQ = 3011,
   ID_LIST_DIR_RSP = 3012,
+  ID_UPLOAD_CHUNK_REQ = 4001,
+  ID_UPLOAD_CHUNK_RSP = 4002,
   MsgId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   MsgId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool MsgId_IsValid(int value);
 constexpr MsgId MsgId_MIN = ID_UNKNOWN;
-constexpr MsgId MsgId_MAX = ID_LIST_DIR_RSP;
+constexpr MsgId MsgId_MAX = ID_UPLOAD_CHUNK_RSP;
 constexpr int MsgId_ARRAYSIZE = MsgId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MsgId_descriptor();
@@ -120,12 +122,16 @@ enum ErrorCode : int {
   ERR_PERMISSION_DENIED = 303,
   ERR_INVALID_NAME = 304,
   ERR_DIR_NOT_EMPTY = 305,
+  ERR_CHUNK_CORRUPTED = 401,
+  ERR_DISK_FULL = 402,
+  ERR_FILE_IO_FAILED = 403,
+  ERR_TRANSFER_TIMEOUT = 404,
   ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool ErrorCode_IsValid(int value);
 constexpr ErrorCode ErrorCode_MIN = ERR_SUCCESS;
-constexpr ErrorCode ErrorCode_MAX = ERR_DIR_NOT_EMPTY;
+constexpr ErrorCode ErrorCode_MAX = ERR_TRANSFER_TIMEOUT;
 constexpr int ErrorCode_ARRAYSIZE = ErrorCode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ErrorCode_descriptor();

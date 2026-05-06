@@ -23,6 +23,12 @@ GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint1
     // ================== 路由表注册 ==================
     RegisterHandler(ID_LOGIN_REQ, std::bind(&GatewayTcpServer::HandleLoginReq, this, _1, _2,_3));
 
+    // 👑 注册文件系统相关路由
+    RegisterHandler(ID_LIST_DIR_REQ, std::bind(&GatewayTcpServer::HandleListDirReq, this, _1, _2, _3));
+    RegisterHandler(ID_CREATE_FOLDER_REQ, std::bind(&GatewayTcpServer::HandleCreateFolderReq, this, _1, _2, _3));
+    RegisterHandler(ID_RENAME_NODE_REQ, std::bind(&GatewayTcpServer::HandleRenameNodeReq, this, _1, _2, _3));
+    RegisterHandler(ID_DELETE_NODE_REQ, std::bind(&GatewayTcpServer::HandleDeleteNodeReq, this, _1, _2, _3));
+
     // 建立长连接
 
     // 1. 启动一个专门针对后端微服务通信的后台 IO 线程
@@ -31,7 +37,7 @@ GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint1
 
     login_channel_ = std::make_shared<MyChannel>(rpc_client_loop_, "127.0.0.1", 9090);
     //transfer_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8082);
-    //meta_channel_ = std::make_shared<MyChannel>("127.0.0.1", 8090);
+    meta_channel_ = std::make_shared<MyChannel>(rpc_client_loop_, "127.0.0.1", 8090);
 
     // 初始化线程池
     thread_pool_ = std::make_shared<ThreadPool>("gateway_pool_");
@@ -155,6 +161,7 @@ void GatewayTcpServer::OnMessage(const std::shared_ptr<TcpConnection>& conn, Buf
 }
 
 // ================== 具体的业务处理 (Handler) ==================
+// 处理登录请求
 void GatewayTcpServer::HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, const std::string& pb_data)
 {
     // 1. 解包外网请求
@@ -223,6 +230,100 @@ void GatewayTcpServer::HandleLoginReq(const std::shared_ptr<TcpConnection>& conn
     omnibox::LoginService_Stub stub(login_channel_.get());
     stub.Login(controler.get(), req.get(), rsp.get(), closure);
 }
+
+// =========================================================================================
+// 🧠 虚拟文件树 (MetaService) 的透明代理转发逻辑
+// =========================================================================================
+
+// 1. 拉取目录列表
+void GatewayTcpServer::HandleListDirReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, const std::string& pb_data)
+{
+    auto req = std::make_shared<omnibox::ListDirectoryRequest>();
+    if (!req->ParseFromString(pb_data)) {
+        LOG_ERROR << "[Gateway] Failed to parse ListDirectoryRequest!";
+        return;                                                                 // 对于内部业务错误，最好不要 ForceClose，丢弃坏包即可，或者回一个格式错误响应
+    }
+
+    uint64_t client_seq_id = header.seq_id();
+
+    // 闭包回调
+    auto success_cb = [this, client_seq_id](const std::shared_ptr<TcpConnection>& conn, const std::shared_ptr<omnibox::ListDirectoryResponse>& response)
+        {
+            omnibox::ErrorCode code = response->success() ? omnibox::ERR_SUCCESS : omnibox::ERR_SERVER_INTERNAL;
+            SendToConn(conn, omnibox::ID_LIST_DIR_RSP, code, response->message(), client_seq_id, response->SerializeAsString());
+        };
+
+    auto controller = std::make_shared<MyController>();
+    auto rsp = std::make_shared<omnibox::ListDirectoryResponse>();
+    auto closure = new TcpRpcClosure<omnibox::ListDirectoryResponse>(conn, controller, rsp, success_cb);
+
+    omnibox::MetaService_Stub stub(meta_channel_.get());
+    stub.ListDirectory(controller.get(), req.get(), rsp.get(), closure);
+}
+
+// 2. 新建文件夹
+void GatewayTcpServer::HandleCreateFolderReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, const std::string& pb_data)
+{
+    auto req = std::make_shared<omnibox::CreateFolderRequest>();
+    if (!req->ParseFromString(pb_data)) return;
+
+    uint64_t client_seq_id = header.seq_id();
+
+    auto success_cb = [this, client_seq_id](const std::shared_ptr<TcpConnection>& conn, const std::shared_ptr<omnibox::CreateFolderResponse>& response) {
+        omnibox::ErrorCode code = response->success() ? omnibox::ERR_SUCCESS : omnibox::ERR_SERVER_INTERNAL;
+        SendToConn(conn, omnibox::ID_CREATE_FOLDER_RSP, code, response->message(), client_seq_id, response->SerializeAsString());
+        };
+
+    auto controller = std::make_shared<MyController>();
+    auto rsp = std::make_shared<omnibox::CreateFolderResponse>();
+    auto closure = new TcpRpcClosure<omnibox::CreateFolderResponse>(conn, controller, rsp, success_cb);
+
+    omnibox::MetaService_Stub stub(meta_channel_.get());
+    stub.CreateFolder(controller.get(), req.get(), rsp.get(), closure);
+}
+
+// 3. 重命名节点
+void GatewayTcpServer::HandleRenameNodeReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, const std::string& pb_data)
+{
+    auto req = std::make_shared<omnibox::RenameNodeRequest>();
+    if (!req->ParseFromString(pb_data)) return;
+
+    uint64_t client_seq_id = header.seq_id();
+
+    auto success_cb = [this, client_seq_id](const std::shared_ptr<TcpConnection>& conn, const std::shared_ptr<omnibox::RenameNodeResponse>& response) {
+        omnibox::ErrorCode code = response->success() ? omnibox::ERR_SUCCESS : omnibox::ERR_SERVER_INTERNAL;
+        SendToConn(conn, omnibox::ID_RENAME_NODE_RSP, code, response->message(), client_seq_id, response->SerializeAsString());
+        };
+
+    auto controller = std::make_shared<MyController>();
+    auto rsp = std::make_shared<omnibox::RenameNodeResponse>();
+    auto closure = new TcpRpcClosure<omnibox::RenameNodeResponse>(conn, controller, rsp, success_cb);
+
+    omnibox::MetaService_Stub stub(meta_channel_.get());
+    stub.RenameNode(controller.get(), req.get(), rsp.get(), closure);
+}
+
+// 4. 删除节点
+void GatewayTcpServer::HandleDeleteNodeReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, const std::string& pb_data)
+{
+    auto req = std::make_shared<omnibox::DeleteNodeRequest>();
+    if (!req->ParseFromString(pb_data)) return;
+
+    uint64_t client_seq_id = header.seq_id();
+
+    auto success_cb = [this, client_seq_id](const std::shared_ptr<TcpConnection>& conn, const std::shared_ptr<omnibox::DeleteNodeResponse>& response) {
+        omnibox::ErrorCode code = response->success() ? omnibox::ERR_SUCCESS : omnibox::ERR_SERVER_INTERNAL;
+        SendToConn(conn, omnibox::ID_DELETE_NODE_RSP, code, response->message(), client_seq_id, response->SerializeAsString());
+        };
+
+    auto controller = std::make_shared<MyController>();
+    auto rsp = std::make_shared<omnibox::DeleteNodeResponse>();
+    auto closure = new TcpRpcClosure<omnibox::DeleteNodeResponse>(conn, controller, rsp, success_cb);
+
+    omnibox::MetaService_Stub stub(meta_channel_.get());
+    stub.DeleteNode(controller.get(), req.get(), rsp.get(), closure);
+}
+
 
 // ================== 推送响应回包 ==================
 void GatewayTcpServer::SendToConn(const std::shared_ptr<TcpConnection>& conn, uint32_t msg_id,

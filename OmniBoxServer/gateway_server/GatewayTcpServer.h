@@ -35,6 +35,21 @@ private:
     void HandleLoginReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, 
         const std::string& pb_data);
 
+    // =========================================================================
+    // 虚拟文件系统 (MetaService) 转发处理函数
+    // =========================================================================
+    void HandleListDirReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header,
+        const std::string& pb_data);                                                                                    // 处理拉取目录列表请求
+
+    void HandleCreateFolderReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header,
+        const std::string& pb_data);                                                                                    // 处理新建文件夹请求
+
+    void HandleRenameNodeReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header,
+        const std::string& pb_data);                                                                                    // 处理重命名节点请求
+
+    void HandleDeleteNodeReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header,
+        const std::string& pb_data);                                                                                    // 处理删除节点请求
+
     void SendToConn(const std::shared_ptr<TcpConnection>& conn, uint32_t msg_id,
         omnibox::ErrorCode err_code,
         const std::string& err_msg,

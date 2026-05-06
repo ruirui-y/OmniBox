@@ -73,12 +73,24 @@ enum MsgId : int {
   ID_HEARTBEAT = 1,
   ID_LOGIN_REQ = 1001,
   ID_LOGIN_RSP = 1002,
+  ID_CREATE_FOLDER_REQ = 3001,
+  ID_CREATE_FOLDER_RSP = 3002,
+  ID_DELETE_NODE_REQ = 3003,
+  ID_DELETE_NODE_RSP = 3004,
+  ID_CHECK_FILE_REQ = 3005,
+  ID_CHECK_FILE_RSP = 3006,
+  ID_RENAME_NODE_REQ = 3007,
+  ID_RENAME_NODE_RSP = 3008,
+  ID_MOVE_NODE_REQ = 3009,
+  ID_MOVE_NODE_RSP = 3010,
+  ID_LIST_DIR_REQ = 3011,
+  ID_LIST_DIR_RSP = 3012,
   MsgId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   MsgId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool MsgId_IsValid(int value);
 constexpr MsgId MsgId_MIN = ID_UNKNOWN;
-constexpr MsgId MsgId_MAX = ID_LOGIN_RSP;
+constexpr MsgId MsgId_MAX = ID_LIST_DIR_RSP;
 constexpr int MsgId_ARRAYSIZE = MsgId_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MsgId_descriptor();
@@ -103,12 +115,17 @@ enum ErrorCode : int {
   ERR_ACCOUNT_EXPIRED = 4,
   ERR_USER_NOT_FOUND = 5,
   ERR_ACCOUNT_BANNED = 6,
+  ERR_NODE_NOT_FOUND = 301,
+  ERR_NODE_EXISTED = 302,
+  ERR_PERMISSION_DENIED = 303,
+  ERR_INVALID_NAME = 304,
+  ERR_DIR_NOT_EMPTY = 305,
   ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool ErrorCode_IsValid(int value);
 constexpr ErrorCode ErrorCode_MIN = ERR_SUCCESS;
-constexpr ErrorCode ErrorCode_MAX = ERR_ACCOUNT_BANNED;
+constexpr ErrorCode ErrorCode_MAX = ERR_DIR_NOT_EMPTY;
 constexpr int ErrorCode_ARRAYSIZE = ErrorCode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ErrorCode_descriptor();

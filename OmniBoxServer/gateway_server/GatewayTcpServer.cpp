@@ -50,25 +50,39 @@ void GatewayTcpServer::RegisterHandler(uint32_t msg_id, MsgHandler handler)
 
 void GatewayTcpServer::OnConnection(const std::shared_ptr<TcpConnection>& conn)
 {
-    // 断开连接，移除映射
+    // 断开连接
     if (!conn->Connected())
     {
-        // 这里断开只有三种情况，客户端主动断开，服务器主动断开以及超时断开
-        // 不论是哪种断开，都需要判断是否登录成功，登录成功的标志就是conn是否绑定了uid
+        // 登录成功的标志就是conn是否绑定了uid
         bool bLogin = conn->GetContext().has_value();
         if (bLogin)
         {
-            // 移除映射
             int32_t uid = std::any_cast<int32_t>(conn->GetContext());
-            
+            bool really_erased = false;
+
             {
                 std::lock_guard<std::mutex> lock(session_mutex_);
-                user_sessions_.erase(uid);
+                auto it = user_sessions_.find(uid);
+
+                // 只有当 map 里这个 uid 对应的连接，依然是当前正要断开的 conn 时，才允许删除！
+                // (注意：这里直接利用 shared_ptr 的 operator== 比较底层的原生指针)
+                if (it != user_sessions_.end() && it->second == conn)
+                {
+                    user_sessions_.erase(it);
+                    really_erased = true;
+                }
             }
 
-            // 由于登录服务不再以心跳时间作为登录条件，而是挤掉之前登录的账户，所以这里不需要更新心跳时间了
-
-            LOG_INFO << "[Gateway] Player " << uid << " disconnected. Session removed.";
+            if (really_erased)
+            {
+                // 正常退出、断网掉线
+                LOG_INFO << "[Gateway] Player " << uid << " disconnected naturally. Session removed.";
+            }
+            else
+            {
+                // 被顶号踢下线，默默走人，不破坏新连接的 map
+                LOG_INFO << "[Gateway] Player " << uid << "'s OLD connection disconnected (Kicked). Map remains safe.";
+            }
         }
     }
     else

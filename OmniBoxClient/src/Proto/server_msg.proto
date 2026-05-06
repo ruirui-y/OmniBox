@@ -70,15 +70,24 @@ message CreateFolderResponse {
 }
 
 // ----------------------------------------
-// 2. 删除节点 (Delete) - 软删除
+// 2. 删除节点 (Delete) - 软删除与硬删除
 // ----------------------------------------
 message DeleteNodeRequest {
     int64 user_id = 1;          
     int64 node_id = 2;          
+    
+    // 👑 架构级新增：区分删除级别
+    bool is_hard_delete = 3;    // false: 移入回收站 (软删除) | true: 彻底粉碎 (硬删除)
 }
+
 message DeleteNodeResponse {
     bool success = 1;
     string message = 2;
+    
+    // 👑 架构级新增：容量变动反馈
+    // 无论是移入回收站还是彻底删除，前端往往需要知道这次操作涉及了多大的数据量
+    // 以便实时更新 UI 左下角的 "已用空间 / 总空间" 进度条，而不需要重新向服务器拉取全量用户信息
+    int64 affected_size = 3;    
 }
 
 // ----------------------------------------
@@ -164,6 +173,7 @@ message CreateFileNodeResponse {
     string message = 2;
     int64 new_node_id = 3;      // 成功挂载后分配的虚拟节点ID
 }
+
 
 // ==============================================================================
 // 📦 4. 文件数据面 (TransferService) - 负责大文件的分片上传与落盘

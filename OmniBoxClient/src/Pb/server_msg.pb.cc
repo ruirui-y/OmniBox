@@ -448,6 +448,7 @@ inline constexpr DeleteNodeResponse::Impl_::Impl_(
       : message_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
+        affected_size_{::int64_t{0}},
         success_{false},
         _cached_size_{0} {}
 
@@ -475,6 +476,7 @@ inline constexpr DeleteNodeRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : user_id_{::int64_t{0}},
         node_id_{::int64_t{0}},
+        is_hard_delete_{false},
         _cached_size_{0} {}
 
 template <typename>
@@ -809,6 +811,7 @@ const ::uint32_t
         ~0u,  // no sizeof(Split)
         PROTOBUF_FIELD_OFFSET(::omnibox::DeleteNodeRequest, _impl_.user_id_),
         PROTOBUF_FIELD_OFFSET(::omnibox::DeleteNodeRequest, _impl_.node_id_),
+        PROTOBUF_FIELD_OFFSET(::omnibox::DeleteNodeRequest, _impl_.is_hard_delete_),
         ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::omnibox::DeleteNodeResponse, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -819,6 +822,7 @@ const ::uint32_t
         ~0u,  // no sizeof(Split)
         PROTOBUF_FIELD_OFFSET(::omnibox::DeleteNodeResponse, _impl_.success_),
         PROTOBUF_FIELD_OFFSET(::omnibox::DeleteNodeResponse, _impl_.message_),
+        PROTOBUF_FIELD_OFFSET(::omnibox::DeleteNodeResponse, _impl_.affected_size_),
         ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::omnibox::CheckFileRequest, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -984,20 +988,20 @@ static const ::_pbi::MigrationSchema
         {63, -1, -1, sizeof(::omnibox::CreateFolderRequest)},
         {74, -1, -1, sizeof(::omnibox::CreateFolderResponse)},
         {85, -1, -1, sizeof(::omnibox::DeleteNodeRequest)},
-        {95, -1, -1, sizeof(::omnibox::DeleteNodeResponse)},
-        {105, -1, -1, sizeof(::omnibox::CheckFileRequest)},
-        {118, -1, -1, sizeof(::omnibox::CheckFileResponse)},
-        {128, -1, -1, sizeof(::omnibox::RenameNodeRequest)},
-        {139, -1, -1, sizeof(::omnibox::RenameNodeResponse)},
-        {149, -1, -1, sizeof(::omnibox::MoveNodeRequest)},
-        {160, -1, -1, sizeof(::omnibox::MoveNodeResponse)},
-        {170, -1, -1, sizeof(::omnibox::ListDirectoryRequest)},
-        {180, -1, -1, sizeof(::omnibox::NodeInfo)},
-        {194, -1, -1, sizeof(::omnibox::ListDirectoryResponse)},
-        {205, -1, -1, sizeof(::omnibox::CreateFileNodeRequest)},
-        {218, -1, -1, sizeof(::omnibox::CreateFileNodeResponse)},
-        {229, -1, -1, sizeof(::omnibox::FileChunkUploadRequest)},
-        {245, -1, -1, sizeof(::omnibox::FileChunkUploadResponse)},
+        {96, -1, -1, sizeof(::omnibox::DeleteNodeResponse)},
+        {107, -1, -1, sizeof(::omnibox::CheckFileRequest)},
+        {120, -1, -1, sizeof(::omnibox::CheckFileResponse)},
+        {130, -1, -1, sizeof(::omnibox::RenameNodeRequest)},
+        {141, -1, -1, sizeof(::omnibox::RenameNodeResponse)},
+        {151, -1, -1, sizeof(::omnibox::MoveNodeRequest)},
+        {162, -1, -1, sizeof(::omnibox::MoveNodeResponse)},
+        {172, -1, -1, sizeof(::omnibox::ListDirectoryRequest)},
+        {182, -1, -1, sizeof(::omnibox::NodeInfo)},
+        {196, -1, -1, sizeof(::omnibox::ListDirectoryResponse)},
+        {207, -1, -1, sizeof(::omnibox::CreateFileNodeRequest)},
+        {220, -1, -1, sizeof(::omnibox::CreateFileNodeResponse)},
+        {231, -1, -1, sizeof(::omnibox::FileChunkUploadRequest)},
+        {247, -1, -1, sizeof(::omnibox::FileChunkUploadResponse)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
     &::omnibox::_LoginRequest_default_instance_._instance,
@@ -1040,45 +1044,46 @@ const char descriptor_table_protodef_server_5fmsg_2eproto[] ABSL_ATTRIBUTE_SECTI
     "(\003\022\021\n\tparent_id\030\002 \001(\003\022\023\n\013folder_name\030\003 \001"
     "(\t\"M\n\024CreateFolderResponse\022\017\n\007success\030\001 "
     "\001(\010\022\017\n\007message\030\002 \001(\t\022\023\n\013new_node_id\030\003 \001("
-    "\003\"5\n\021DeleteNodeRequest\022\017\n\007user_id\030\001 \001(\003\022"
-    "\017\n\007node_id\030\002 \001(\003\"6\n\022DeleteNodeResponse\022\017"
-    "\n\007success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\"o\n\020Chec"
-    "kFileRequest\022\017\n\007user_id\030\001 \001(\003\022\021\n\tparent_"
-    "id\030\002 \001(\003\022\021\n\tfile_hash\030\003 \001(\t\022\021\n\tfile_name"
-    "\030\004 \001(\t\022\021\n\tfile_size\030\005 \001(\003\"6\n\021CheckFileRe"
-    "sponse\022\020\n\010is_exist\030\001 \001(\010\022\017\n\007message\030\002 \001("
-    "\t\"G\n\021RenameNodeRequest\022\017\n\007user_id\030\001 \001(\003\022"
-    "\017\n\007node_id\030\002 \001(\003\022\020\n\010new_name\030\003 \001(\t\"6\n\022Re"
-    "nameNodeResponse\022\017\n\007success\030\001 \001(\010\022\017\n\007mes"
-    "sage\030\002 \001(\t\"M\n\017MoveNodeRequest\022\017\n\007user_id"
-    "\030\001 \001(\003\022\017\n\007node_id\030\002 \001(\003\022\030\n\020target_parent"
-    "_id\030\003 \001(\003\"4\n\020MoveNodeResponse\022\017\n\007success"
-    "\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\":\n\024ListDirectory"
-    "Request\022\017\n\007user_id\030\001 \001(\003\022\021\n\tparent_id\030\002 "
-    "\001(\003\"y\n\010NodeInfo\022\017\n\007node_id\030\001 \001(\003\022\021\n\tnode"
-    "_name\030\002 \001(\t\022\016\n\006is_dir\030\003 \001(\010\022\021\n\tfile_size"
-    "\030\004 \001(\003\022\023\n\013update_time\030\005 \001(\t\022\021\n\tfile_hash"
-    "\030\006 \001(\t\"[\n\025ListDirectoryResponse\022\017\n\007succe"
-    "ss\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\022 \n\005nodes\030\003 \003(\013"
-    "2\021.omnibox.NodeInfo\"t\n\025CreateFileNodeReq"
-    "uest\022\017\n\007user_id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003"
-    "\022\021\n\tfile_name\030\003 \001(\t\022\021\n\tfile_hash\030\004 \001(\t\022\021"
-    "\n\tfile_size\030\005 \001(\003\"O\n\026CreateFileNodeRespo"
-    "nse\022\017\n\007success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\022\023\n"
-    "\013new_node_id\030\003 \001(\003\"\251\001\n\026FileChunkUploadRe"
-    "quest\022\021\n\tfile_hash\030\001 \001(\t\022\021\n\tfile_name\030\002 "
-    "\001(\t\022\022\n\ntotal_size\030\003 \001(\003\022\022\n\nblock_hash\030\004 "
-    "\001(\t\022\023\n\013chunk_index\030\005 \001(\005\022\014\n\004data\030\006 \001(\014\022\016"
-    "\n\006offset\030\007 \001(\003\022\016\n\006is_eof\030\010 \001(\010\"f\n\027FileCh"
-    "unkUploadResponse\022\017\n\007success\030\001 \001(\010\022\017\n\007me"
-    "ssage\030\002 \001(\t\022\024\n\014is_duplicate\030\003 \001(\010\022\023\n\013nex"
-    "t_offset\030\004 \001(\003b\006proto3"
+    "\003\"M\n\021DeleteNodeRequest\022\017\n\007user_id\030\001 \001(\003\022"
+    "\017\n\007node_id\030\002 \001(\003\022\026\n\016is_hard_delete\030\003 \001(\010"
+    "\"M\n\022DeleteNodeResponse\022\017\n\007success\030\001 \001(\010\022"
+    "\017\n\007message\030\002 \001(\t\022\025\n\raffected_size\030\003 \001(\003\""
+    "o\n\020CheckFileRequest\022\017\n\007user_id\030\001 \001(\003\022\021\n\t"
+    "parent_id\030\002 \001(\003\022\021\n\tfile_hash\030\003 \001(\t\022\021\n\tfi"
+    "le_name\030\004 \001(\t\022\021\n\tfile_size\030\005 \001(\003\"6\n\021Chec"
+    "kFileResponse\022\020\n\010is_exist\030\001 \001(\010\022\017\n\007messa"
+    "ge\030\002 \001(\t\"G\n\021RenameNodeRequest\022\017\n\007user_id"
+    "\030\001 \001(\003\022\017\n\007node_id\030\002 \001(\003\022\020\n\010new_name\030\003 \001("
+    "\t\"6\n\022RenameNodeResponse\022\017\n\007success\030\001 \001(\010"
+    "\022\017\n\007message\030\002 \001(\t\"M\n\017MoveNodeRequest\022\017\n\007"
+    "user_id\030\001 \001(\003\022\017\n\007node_id\030\002 \001(\003\022\030\n\020target"
+    "_parent_id\030\003 \001(\003\"4\n\020MoveNodeResponse\022\017\n\007"
+    "success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\":\n\024ListDi"
+    "rectoryRequest\022\017\n\007user_id\030\001 \001(\003\022\021\n\tparen"
+    "t_id\030\002 \001(\003\"y\n\010NodeInfo\022\017\n\007node_id\030\001 \001(\003\022"
+    "\021\n\tnode_name\030\002 \001(\t\022\016\n\006is_dir\030\003 \001(\010\022\021\n\tfi"
+    "le_size\030\004 \001(\003\022\023\n\013update_time\030\005 \001(\t\022\021\n\tfi"
+    "le_hash\030\006 \001(\t\"[\n\025ListDirectoryResponse\022\017"
+    "\n\007success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\022 \n\005node"
+    "s\030\003 \003(\0132\021.omnibox.NodeInfo\"t\n\025CreateFile"
+    "NodeRequest\022\017\n\007user_id\030\001 \001(\003\022\021\n\tparent_i"
+    "d\030\002 \001(\003\022\021\n\tfile_name\030\003 \001(\t\022\021\n\tfile_hash\030"
+    "\004 \001(\t\022\021\n\tfile_size\030\005 \001(\003\"O\n\026CreateFileNo"
+    "deResponse\022\017\n\007success\030\001 \001(\010\022\017\n\007message\030\002"
+    " \001(\t\022\023\n\013new_node_id\030\003 \001(\003\"\251\001\n\026FileChunkU"
+    "ploadRequest\022\021\n\tfile_hash\030\001 \001(\t\022\021\n\tfile_"
+    "name\030\002 \001(\t\022\022\n\ntotal_size\030\003 \001(\003\022\022\n\nblock_"
+    "hash\030\004 \001(\t\022\023\n\013chunk_index\030\005 \001(\005\022\014\n\004data\030"
+    "\006 \001(\014\022\016\n\006offset\030\007 \001(\003\022\016\n\006is_eof\030\010 \001(\010\"f\n"
+    "\027FileChunkUploadResponse\022\017\n\007success\030\001 \001("
+    "\010\022\017\n\007message\030\002 \001(\t\022\024\n\014is_duplicate\030\003 \001(\010"
+    "\022\023\n\013next_offset\030\004 \001(\003b\006proto3"
 };
 static ::absl::once_flag descriptor_table_server_5fmsg_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_server_5fmsg_2eproto = {
     false,
     false,
-    1862,
+    1909,
     descriptor_table_protodef_server_5fmsg_2eproto,
     "server_msg.proto",
     &descriptor_table_server_5fmsg_2eproto_once,
@@ -3350,9 +3355,9 @@ inline void DeleteNodeRequest::SharedCtor(::_pb::Arena* arena) {
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, user_id_),
            0,
-           offsetof(Impl_, node_id_) -
+           offsetof(Impl_, is_hard_delete_) -
                offsetof(Impl_, user_id_) +
-               sizeof(Impl_::node_id_));
+               sizeof(Impl_::is_hard_delete_));
 }
 DeleteNodeRequest::~DeleteNodeRequest() {
   // @@protoc_insertion_point(destructor:omnibox.DeleteNodeRequest)
@@ -3401,15 +3406,15 @@ const ::google::protobuf::internal::ClassData* DeleteNodeRequest::GetClassData()
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 0, 2> DeleteNodeRequest::_table_ = {
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2> DeleteNodeRequest::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     _class_data_.base(),
@@ -3419,12 +3424,16 @@ const ::_pbi::TcParseTable<1, 2, 0, 0, 2> DeleteNodeRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::omnibox::DeleteNodeRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // int64 node_id = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(DeleteNodeRequest, _impl_.node_id_), 63>(),
-     {16, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.node_id_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // int64 user_id = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(DeleteNodeRequest, _impl_.user_id_), 63>(),
      {8, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.user_id_)}},
+    // int64 node_id = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(DeleteNodeRequest, _impl_.node_id_), 63>(),
+     {16, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.node_id_)}},
+    // bool is_hard_delete = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(DeleteNodeRequest, _impl_.is_hard_delete_), 63>(),
+     {24, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.is_hard_delete_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -3434,6 +3443,9 @@ const ::_pbi::TcParseTable<1, 2, 0, 0, 2> DeleteNodeRequest::_table_ = {
     // int64 node_id = 2;
     {PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.node_id_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kInt64)},
+    // bool is_hard_delete = 3;
+    {PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.is_hard_delete_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
   }},
   // no aux_entries
   {{
@@ -3448,8 +3460,8 @@ PROTOBUF_NOINLINE void DeleteNodeRequest::Clear() {
   (void) cached_has_bits;
 
   ::memset(&_impl_.user_id_, 0, static_cast<::size_t>(
-      reinterpret_cast<char*>(&_impl_.node_id_) -
-      reinterpret_cast<char*>(&_impl_.user_id_)) + sizeof(_impl_.node_id_));
+      reinterpret_cast<char*>(&_impl_.is_hard_delete_) -
+      reinterpret_cast<char*>(&_impl_.user_id_)) + sizeof(_impl_.is_hard_delete_));
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -3480,6 +3492,13 @@ PROTOBUF_NOINLINE void DeleteNodeRequest::Clear() {
             target = ::google::protobuf::internal::WireFormatLite::
                 WriteInt64ToArrayWithField<2>(
                     stream, this_._internal_node_id(), target);
+          }
+
+          // bool is_hard_delete = 3;
+          if (this_._internal_is_hard_delete() != 0) {
+            target = stream->EnsureSpace(target);
+            target = ::_pbi::WireFormatLite::WriteBoolToArray(
+                3, this_._internal_is_hard_delete(), target);
           }
 
           if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -3517,6 +3536,10 @@ PROTOBUF_NOINLINE void DeleteNodeRequest::Clear() {
               total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
                   this_._internal_node_id());
             }
+            // bool is_hard_delete = 3;
+            if (this_._internal_is_hard_delete() != 0) {
+              total_size += 2;
+            }
           }
           return this_.MaybeComputeUnknownFieldsSize(total_size,
                                                      &this_._impl_._cached_size_);
@@ -3536,6 +3559,9 @@ void DeleteNodeRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const
   if (from._internal_node_id() != 0) {
     _this->_impl_.node_id_ = from._impl_.node_id_;
   }
+  if (from._internal_is_hard_delete() != 0) {
+    _this->_impl_.is_hard_delete_ = from._impl_.is_hard_delete_;
+  }
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -3551,8 +3577,8 @@ void DeleteNodeRequest::InternalSwap(DeleteNodeRequest* PROTOBUF_RESTRICT other)
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.node_id_)
-      + sizeof(DeleteNodeRequest::_impl_.node_id_)
+      PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.is_hard_delete_)
+      + sizeof(DeleteNodeRequest::_impl_.is_hard_delete_)
       - PROTOBUF_FIELD_OFFSET(DeleteNodeRequest, _impl_.user_id_)>(
           reinterpret_cast<char*>(&_impl_.user_id_),
           reinterpret_cast<char*>(&other->_impl_.user_id_));
@@ -3595,7 +3621,13 @@ DeleteNodeResponse::DeleteNodeResponse(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.success_ = from._impl_.success_;
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, affected_size_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, affected_size_),
+           offsetof(Impl_, success_) -
+               offsetof(Impl_, affected_size_) +
+               sizeof(Impl_::success_));
 
   // @@protoc_insertion_point(copy_constructor:omnibox.DeleteNodeResponse)
 }
@@ -3607,7 +3639,12 @@ inline PROTOBUF_NDEBUG_INLINE DeleteNodeResponse::Impl_::Impl_(
 
 inline void DeleteNodeResponse::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.success_ = {};
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, affected_size_),
+           0,
+           offsetof(Impl_, success_) -
+               offsetof(Impl_, affected_size_) +
+               sizeof(Impl_::success_));
 }
 DeleteNodeResponse::~DeleteNodeResponse() {
   // @@protoc_insertion_point(destructor:omnibox.DeleteNodeResponse)
@@ -3657,15 +3694,15 @@ const ::google::protobuf::internal::ClassData* DeleteNodeResponse::GetClassData(
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 42, 2> DeleteNodeResponse::_table_ = {
+const ::_pbi::TcParseTable<2, 3, 0, 42, 2> DeleteNodeResponse::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     _class_data_.base(),
@@ -3675,12 +3712,16 @@ const ::_pbi::TcParseTable<1, 2, 0, 42, 2> DeleteNodeResponse::_table_ = {
     ::_pbi::TcParser::GetTable<::omnibox::DeleteNodeResponse>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string message = 2;
-    {::_pbi::TcParser::FastUS1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.message_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // bool success = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(DeleteNodeResponse, _impl_.success_), 63>(),
      {8, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.success_)}},
+    // string message = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.message_)}},
+    // int64 affected_size = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(DeleteNodeResponse, _impl_.affected_size_), 63>(),
+     {24, 63, 0, PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.affected_size_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -3690,6 +3731,9 @@ const ::_pbi::TcParseTable<1, 2, 0, 42, 2> DeleteNodeResponse::_table_ = {
     // string message = 2;
     {PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.message_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // int64 affected_size = 3;
+    {PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.affected_size_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kInt64)},
   }},
   // no aux_entries
   {{
@@ -3707,7 +3751,9 @@ PROTOBUF_NOINLINE void DeleteNodeResponse::Clear() {
   (void) cached_has_bits;
 
   _impl_.message_.ClearToEmpty();
-  _impl_.success_ = false;
+  ::memset(&_impl_.affected_size_, 0, static_cast<::size_t>(
+      reinterpret_cast<char*>(&_impl_.success_) -
+      reinterpret_cast<char*>(&_impl_.affected_size_)) + sizeof(_impl_.success_));
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -3741,6 +3787,13 @@ PROTOBUF_NOINLINE void DeleteNodeResponse::Clear() {
             target = stream->WriteStringMaybeAliased(2, _s, target);
           }
 
+          // int64 affected_size = 3;
+          if (this_._internal_affected_size() != 0) {
+            target = ::google::protobuf::internal::WireFormatLite::
+                WriteInt64ToArrayWithField<3>(
+                    stream, this_._internal_affected_size(), target);
+          }
+
           if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
             target =
                 ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -3771,6 +3824,11 @@ PROTOBUF_NOINLINE void DeleteNodeResponse::Clear() {
               total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                               this_._internal_message());
             }
+            // int64 affected_size = 3;
+            if (this_._internal_affected_size() != 0) {
+              total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+                  this_._internal_affected_size());
+            }
             // bool success = 1;
             if (this_._internal_success() != 0) {
               total_size += 2;
@@ -3790,6 +3848,9 @@ void DeleteNodeResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, cons
 
   if (!from._internal_message().empty()) {
     _this->_internal_set_message(from._internal_message());
+  }
+  if (from._internal_affected_size() != 0) {
+    _this->_impl_.affected_size_ = from._impl_.affected_size_;
   }
   if (from._internal_success() != 0) {
     _this->_impl_.success_ = from._impl_.success_;
@@ -3811,7 +3872,12 @@ void DeleteNodeResponse::InternalSwap(DeleteNodeResponse* PROTOBUF_RESTRICT othe
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.message_, &other->_impl_.message_, arena);
-        swap(_impl_.success_, other->_impl_.success_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.success_)
+      + sizeof(DeleteNodeResponse::_impl_.success_)
+      - PROTOBUF_FIELD_OFFSET(DeleteNodeResponse, _impl_.affected_size_)>(
+          reinterpret_cast<char*>(&_impl_.affected_size_),
+          reinterpret_cast<char*>(&other->_impl_.affected_size_));
 }
 
 ::google::protobuf::Metadata DeleteNodeResponse::GetMetadata() const {

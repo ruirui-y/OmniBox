@@ -3421,6 +3421,7 @@ class DeleteNodeResponse final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kMessageFieldNumber = 2,
+    kAffectedSizeFieldNumber = 3,
     kSuccessFieldNumber = 1,
   };
   // string message = 2;
@@ -3439,6 +3440,16 @@ class DeleteNodeResponse final : public ::google::protobuf::Message
   std::string* _internal_mutable_message();
 
   public:
+  // int64 affected_size = 3;
+  void clear_affected_size() ;
+  ::int64_t affected_size() const;
+  void set_affected_size(::int64_t value);
+
+  private:
+  ::int64_t _internal_affected_size() const;
+  void _internal_set_affected_size(::int64_t value);
+
+  public:
   // bool success = 1;
   void clear_success() ;
   bool success() const;
@@ -3454,7 +3465,7 @@ class DeleteNodeResponse final : public ::google::protobuf::Message
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      1, 2, 0,
+      2, 3, 0,
       42, 2>
       _table_;
 
@@ -3473,6 +3484,7 @@ class DeleteNodeResponse final : public ::google::protobuf::Message
                           ::google::protobuf::Arena* arena, const Impl_& from,
                           const DeleteNodeResponse& from_msg);
     ::google::protobuf::internal::ArenaStringPtr message_;
+    ::int64_t affected_size_;
     bool success_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -3630,6 +3642,7 @@ class DeleteNodeRequest final : public ::google::protobuf::Message
   enum : int {
     kUserIdFieldNumber = 1,
     kNodeIdFieldNumber = 2,
+    kIsHardDeleteFieldNumber = 3,
   };
   // int64 user_id = 1;
   void clear_user_id() ;
@@ -3651,12 +3664,22 @@ class DeleteNodeRequest final : public ::google::protobuf::Message
   void _internal_set_node_id(::int64_t value);
 
   public:
+  // bool is_hard_delete = 3;
+  void clear_is_hard_delete() ;
+  bool is_hard_delete() const;
+  void set_is_hard_delete(bool value);
+
+  private:
+  bool _internal_is_hard_delete() const;
+  void _internal_set_is_hard_delete(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:omnibox.DeleteNodeRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      1, 2, 0,
+      2, 3, 0,
       0, 2>
       _table_;
 
@@ -3676,6 +3699,7 @@ class DeleteNodeRequest final : public ::google::protobuf::Message
                           const DeleteNodeRequest& from_msg);
     ::int64_t user_id_;
     ::int64_t node_id_;
+    bool is_hard_delete_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -6066,6 +6090,28 @@ inline void DeleteNodeRequest::_internal_set_node_id(::int64_t value) {
   _impl_.node_id_ = value;
 }
 
+// bool is_hard_delete = 3;
+inline void DeleteNodeRequest::clear_is_hard_delete() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.is_hard_delete_ = false;
+}
+inline bool DeleteNodeRequest::is_hard_delete() const {
+  // @@protoc_insertion_point(field_get:omnibox.DeleteNodeRequest.is_hard_delete)
+  return _internal_is_hard_delete();
+}
+inline void DeleteNodeRequest::set_is_hard_delete(bool value) {
+  _internal_set_is_hard_delete(value);
+  // @@protoc_insertion_point(field_set:omnibox.DeleteNodeRequest.is_hard_delete)
+}
+inline bool DeleteNodeRequest::_internal_is_hard_delete() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.is_hard_delete_;
+}
+inline void DeleteNodeRequest::_internal_set_is_hard_delete(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.is_hard_delete_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // DeleteNodeResponse
@@ -6138,6 +6184,28 @@ inline void DeleteNodeResponse::set_allocated_message(std::string* value) {
     _impl_.message_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:omnibox.DeleteNodeResponse.message)
+}
+
+// int64 affected_size = 3;
+inline void DeleteNodeResponse::clear_affected_size() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.affected_size_ = ::int64_t{0};
+}
+inline ::int64_t DeleteNodeResponse::affected_size() const {
+  // @@protoc_insertion_point(field_get:omnibox.DeleteNodeResponse.affected_size)
+  return _internal_affected_size();
+}
+inline void DeleteNodeResponse::set_affected_size(::int64_t value) {
+  _internal_set_affected_size(value);
+  // @@protoc_insertion_point(field_set:omnibox.DeleteNodeResponse.affected_size)
+}
+inline ::int64_t DeleteNodeResponse::_internal_affected_size() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.affected_size_;
+}
+inline void DeleteNodeResponse::_internal_set_affected_size(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.affected_size_ = value;
 }
 
 // -------------------------------------------------------------------

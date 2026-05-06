@@ -49,6 +49,7 @@ signals:
     // =====================================================================================
     // 虚拟文件系统 (MetaService) 业务响应信号
     // =====================================================================================
+    void SigGlobalBusinessError(int errorCode, QString errorMsg);                                   // 错误信息转发
     void SigListDirectory(const omnibox::ListDirectoryResponse& rsp);                               // 拉取目录列表响应
     void SigFolderCreated(const omnibox::CreateFolderResponse& rsp);                                // 新建文件夹响应
     void SigNodeDeleted(const omnibox::DeleteNodeResponse& rsp);                                    // 删除节点响应

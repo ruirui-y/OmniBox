@@ -11,6 +11,7 @@
 #include "LogRecord.h"
 #include "Enum.h"
 #include "ThreadPool.h"
+#include "server_msg.pb.h"
 
 
 void LoadStyle(QApplication* app)
@@ -32,6 +33,15 @@ void LoadStyle(QApplication* app)
 void RegisterMetaTypes()
 {
     qRegisterMetaType<ReqID_TCP>("ReqID_TCP");
+
+    // =========================================================================
+    // 👑 注册 Protobuf 自定义类型，允许其在多线程 (跨线程信号槽) 中进行深拷贝传递
+    // =========================================================================
+    qRegisterMetaType<omnibox::ListDirectoryResponse>("omnibox::ListDirectoryResponse");
+    qRegisterMetaType<omnibox::CreateFolderResponse>("omnibox::CreateFolderResponse");
+    qRegisterMetaType<omnibox::DeleteNodeResponse>("omnibox::DeleteNodeResponse");
+    qRegisterMetaType<omnibox::RenameNodeResponse>("omnibox::RenameNodeResponse");
+    qRegisterMetaType<omnibox::MoveNodeResponse>("omnibox::MoveNodeResponse");
 }
 
 int main(int argc, char *argv[])

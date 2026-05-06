@@ -119,6 +119,76 @@ void TCPMgr::InitHandlers()
             }
         };
 
+    // ==================================================================
+    // 虚拟文件系统 (MetaService) 路由注册
+    // ==================================================================
+
+    // 1. 拉取目录列表响应
+    m_router[omnibox::ID_LIST_DIR_RSP] = [this](const omnibox::PacketHeader& header, const QByteArray& bodyData) {
+        if (header.error_code() == omnibox::ErrorCode::ERR_SUCCESS) {
+            omnibox::ListDirectoryResponse rsp;
+            if (rsp.ParseFromArray(bodyData.data(), bodyData.size())) {
+                emit SigListDirectory(rsp);
+            }
+        }
+        else {
+            qDebug() << u8"[TCPMgr] 拉取目录失败:" << header.error_msg().c_str();
+            // TODO: 后续可以统一发射一个 SigGlobalError 信号，让主界面弹窗提示
+        }
+        };
+
+    // 2. 新建文件夹响应
+    m_router[omnibox::ID_CREATE_FOLDER_RSP] = [this](const omnibox::PacketHeader& header, const QByteArray& bodyData) {
+        if (header.error_code() == omnibox::ErrorCode::ERR_SUCCESS) {
+            omnibox::CreateFolderResponse rsp;
+            if (rsp.ParseFromArray(bodyData.data(), bodyData.size())) {
+                emit SigFolderCreated(rsp);
+            }
+        }
+        else {
+            qDebug() << u8"[TCPMgr] 新建文件夹失败:" << header.error_msg().c_str();
+        }
+        };
+
+    // 3. 删除节点响应
+    m_router[omnibox::ID_DELETE_NODE_RSP] = [this](const omnibox::PacketHeader& header, const QByteArray& bodyData) {
+        if (header.error_code() == omnibox::ErrorCode::ERR_SUCCESS) {
+            omnibox::DeleteNodeResponse rsp;
+            if (rsp.ParseFromArray(bodyData.data(), bodyData.size())) {
+                emit SigNodeDeleted(rsp);
+            }
+        }
+        else {
+            qDebug() << u8"[TCPMgr] 删除节点失败:" << header.error_msg().c_str();
+        }
+        };
+
+    // 4. 重命名节点响应
+    m_router[omnibox::ID_RENAME_NODE_RSP] = [this](const omnibox::PacketHeader& header, const QByteArray& bodyData) {
+        if (header.error_code() == omnibox::ErrorCode::ERR_SUCCESS) {
+            omnibox::RenameNodeResponse rsp;
+            if (rsp.ParseFromArray(bodyData.data(), bodyData.size())) {
+                emit SigNodeRenamed(rsp);
+            }
+        }
+        else {
+            qDebug() << u8"[TCPMgr] 重命名节点失败:" << header.error_msg().c_str();
+        }
+        };
+
+    // 5. 移动节点 (剪切/粘贴) 响应
+    m_router[omnibox::ID_MOVE_NODE_RSP] = [this](const omnibox::PacketHeader& header, const QByteArray& bodyData) {
+        if (header.error_code() == omnibox::ErrorCode::ERR_SUCCESS) {
+            omnibox::MoveNodeResponse rsp;
+            if (rsp.ParseFromArray(bodyData.data(), bodyData.size())) {
+                emit SigNodeMoved(rsp);
+            }
+        }
+        else {
+            qDebug() << u8"[TCPMgr] 移动节点失败:" << header.error_msg().c_str();
+        }
+        };
+
     // ------------------------------------------------------------------
     // 注册 [心跳响应] 的处理逻辑
     // ------------------------------------------------------------------

@@ -83,6 +83,8 @@ enum MsgId : int {
   ID_MOVE_NODE_RSP = 3010,
   ID_LIST_DIR_REQ = 3011,
   ID_LIST_DIR_RSP = 3012,
+  ID_UPLOAD_CHUNK_REQ = 4001,
+  ID_UPLOAD_CHUNK_RSP = 4002,
   MsgId_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   MsgId_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -92,8 +94,8 @@ enum MsgId : int {
 bool MsgId_IsValid(int value);
 extern const uint32_t MsgId_internal_data_[];
 constexpr MsgId MsgId_MIN = static_cast<MsgId>(0);
-constexpr MsgId MsgId_MAX = static_cast<MsgId>(3012);
-constexpr int MsgId_ARRAYSIZE = 3012 + 1;
+constexpr MsgId MsgId_MAX = static_cast<MsgId>(4002);
+constexpr int MsgId_ARRAYSIZE = 4002 + 1;
 const ::google::protobuf::EnumDescriptor*
 MsgId_descriptor();
 template <typename T>
@@ -120,6 +122,10 @@ enum ErrorCode : int {
   ERR_PERMISSION_DENIED = 303,
   ERR_INVALID_NAME = 304,
   ERR_DIR_NOT_EMPTY = 305,
+  ERR_CHUNK_CORRUPTED = 401,
+  ERR_DISK_FULL = 402,
+  ERR_FILE_IO_FAILED = 403,
+  ERR_TRANSFER_TIMEOUT = 404,
   ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -129,8 +135,8 @@ enum ErrorCode : int {
 bool ErrorCode_IsValid(int value);
 extern const uint32_t ErrorCode_internal_data_[];
 constexpr ErrorCode ErrorCode_MIN = static_cast<ErrorCode>(0);
-constexpr ErrorCode ErrorCode_MAX = static_cast<ErrorCode>(305);
-constexpr int ErrorCode_ARRAYSIZE = 305 + 1;
+constexpr ErrorCode ErrorCode_MAX = static_cast<ErrorCode>(404);
+constexpr int ErrorCode_ARRAYSIZE = 404 + 1;
 const ::google::protobuf::EnumDescriptor*
 ErrorCode_descriptor();
 template <typename T>

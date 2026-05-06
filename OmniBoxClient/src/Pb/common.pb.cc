@@ -139,7 +139,7 @@ const char descriptor_table_protodef_common_2eproto[] ABSL_ATTRIBUTE_SECTION_VAR
     "rorCode\022\021\n\terror_msg\030\004 \001(\t\"o\n\tRpcHeader\022"
     "\024\n\014service_name\030\001 \001(\t\022\023\n\013method_name\030\002 \001"
     "(\t\022\024\n\014method_index\030\003 \001(\r\022\021\n\targs_size\030\004 "
-    "\001(\r\022\016\n\006seq_id\030\005 \001(\004*\363\002\n\005MsgId\022\016\n\nID_UNKN"
+    "\001(\r\022\016\n\006seq_id\030\005 \001(\004*\247\003\n\005MsgId\022\016\n\nID_UNKN"
     "OWN\020\000\022\020\n\014ID_HEARTBEAT\020\001\022\021\n\014ID_LOGIN_REQ\020"
     "\351\007\022\021\n\014ID_LOGIN_RSP\020\352\007\022\031\n\024ID_CREATE_FOLDE"
     "R_REQ\020\271\027\022\031\n\024ID_CREATE_FOLDER_RSP\020\272\027\022\027\n\022I"
@@ -148,21 +148,25 @@ const char descriptor_table_protodef_common_2eproto[] ABSL_ATTRIBUTE_SECTION_VAR
     "K_FILE_RSP\020\276\027\022\027\n\022ID_RENAME_NODE_REQ\020\277\027\022\027"
     "\n\022ID_RENAME_NODE_RSP\020\300\027\022\025\n\020ID_MOVE_NODE_"
     "REQ\020\301\027\022\025\n\020ID_MOVE_NODE_RSP\020\302\027\022\024\n\017ID_LIST"
-    "_DIR_REQ\020\303\027\022\024\n\017ID_LIST_DIR_RSP\020\304\027*\244\002\n\tEr"
-    "rorCode\022\017\n\013ERR_SUCCESS\020\000\022\027\n\023ERR_SERVER_I"
-    "NTERNAL\020\001\022\021\n\rERR_WRONG_PWD\020\002\022\026\n\022ERR_ACCO"
-    "UNT_IN_USE\020\003\022\027\n\023ERR_ACCOUNT_EXPIRED\020\004\022\026\n"
-    "\022ERR_USER_NOT_FOUND\020\005\022\026\n\022ERR_ACCOUNT_BAN"
-    "NED\020\006\022\027\n\022ERR_NODE_NOT_FOUND\020\255\002\022\025\n\020ERR_NO"
-    "DE_EXISTED\020\256\002\022\032\n\025ERR_PERMISSION_DENIED\020\257"
-    "\002\022\025\n\020ERR_INVALID_NAME\020\260\002\022\026\n\021ERR_DIR_NOT_"
-    "EMPTY\020\261\002b\006proto3"
+    "_DIR_REQ\020\303\027\022\024\n\017ID_LIST_DIR_RSP\020\304\027\022\030\n\023ID_"
+    "UPLOAD_CHUNK_REQ\020\241\037\022\030\n\023ID_UPLOAD_CHUNK_R"
+    "SP\020\242\037*\206\003\n\tErrorCode\022\017\n\013ERR_SUCCESS\020\000\022\027\n\023"
+    "ERR_SERVER_INTERNAL\020\001\022\021\n\rERR_WRONG_PWD\020\002"
+    "\022\026\n\022ERR_ACCOUNT_IN_USE\020\003\022\027\n\023ERR_ACCOUNT_"
+    "EXPIRED\020\004\022\026\n\022ERR_USER_NOT_FOUND\020\005\022\026\n\022ERR"
+    "_ACCOUNT_BANNED\020\006\022\027\n\022ERR_NODE_NOT_FOUND\020"
+    "\255\002\022\025\n\020ERR_NODE_EXISTED\020\256\002\022\032\n\025ERR_PERMISS"
+    "ION_DENIED\020\257\002\022\025\n\020ERR_INVALID_NAME\020\260\002\022\026\n\021"
+    "ERR_DIR_NOT_EMPTY\020\261\002\022\030\n\023ERR_CHUNK_CORRUP"
+    "TED\020\221\003\022\022\n\rERR_DISK_FULL\020\222\003\022\027\n\022ERR_FILE_I"
+    "O_FAILED\020\223\003\022\031\n\024ERR_TRANSFER_TIMEOUT\020\224\003b\006"
+    "proto3"
 };
 static ::absl::once_flag descriptor_table_common_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_common_2eproto = {
     false,
     false,
-    936,
+    1086,
     descriptor_table_protodef_common_2eproto,
     "common.proto",
     &descriptor_table_common_2eproto_once,
@@ -181,7 +185,7 @@ const ::google::protobuf::EnumDescriptor* MsgId_descriptor() {
   return file_level_enum_descriptors_common_2eproto[0];
 }
 PROTOBUF_CONSTINIT const uint32_t MsgId_internal_data_[] = {
-    131072u, 917504u, 3006u, 3002u, 3010u, 1002u, 3004u, 3008u, 3012u, 1001u, 3001u, 3003u, 3005u, 3007u, 3009u, 3011u, };
+    131072u, 1048576u, 3007u, 3003u, 3011u, 3001u, 3005u, 3009u, 4001u, 1002u, 3002u, 3004u, 3006u, 3008u, 3010u, 3012u, 4002u, 1001u, };
 bool MsgId_IsValid(int value) {
   return ::_pbi::ValidateEnum(value, MsgId_internal_data_);
 }
@@ -190,7 +194,7 @@ const ::google::protobuf::EnumDescriptor* ErrorCode_descriptor() {
   return file_level_enum_descriptors_common_2eproto[1];
 }
 PROTOBUF_CONSTINIT const uint32_t ErrorCode_internal_data_[] = {
-    458752u, 327680u, 304u, 302u, 305u, 301u, 303u, };
+    458752u, 589824u, 401u, 304u, 403u, 302u, 305u, 402u, 404u, 301u, 303u, };
 bool ErrorCode_IsValid(int value) {
   return ::_pbi::ValidateEnum(value, ErrorCode_internal_data_);
 }

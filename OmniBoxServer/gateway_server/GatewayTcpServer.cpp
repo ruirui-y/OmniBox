@@ -28,6 +28,7 @@ GatewayTcpServer::GatewayTcpServer(EventLoop* loop, const std::string& ip, uint1
     RegisterHandler(ID_CREATE_FOLDER_REQ, std::bind(&GatewayTcpServer::HandleCreateFolderReq, this, _1, _2, _3));
     RegisterHandler(ID_RENAME_NODE_REQ, std::bind(&GatewayTcpServer::HandleRenameNodeReq, this, _1, _2, _3));
     RegisterHandler(ID_DELETE_NODE_REQ, std::bind(&GatewayTcpServer::HandleDeleteNodeReq, this, _1, _2, _3));
+    RegisterHandler(ID_MOVE_NODE_REQ, std::bind(&GatewayTcpServer::HandleMoveNodeReq, this, _1, _2, _3));
 
     // 建立长连接
 
@@ -322,6 +323,27 @@ void GatewayTcpServer::HandleDeleteNodeReq(const std::shared_ptr<TcpConnection>&
 
     omnibox::MetaService_Stub stub(meta_channel_.get());
     stub.DeleteNode(controller.get(), req.get(), rsp.get(), closure);
+}
+
+// 5. 移动节点
+void GatewayTcpServer::HandleMoveNodeReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header, const std::string& pb_data)
+{
+    auto req = std::make_shared<omnibox::MoveNodeRequest>();
+    if (!req->ParseFromString(pb_data)) return;
+
+    uint64_t client_seq_id = header.seq_id();
+
+    auto success_cb = [this, client_seq_id](const std::shared_ptr<TcpConnection>& conn, const std::shared_ptr<omnibox::MoveNodeResponse>& response) {
+        omnibox::ErrorCode code = response->success() ? omnibox::ERR_SUCCESS : omnibox::ERR_SERVER_INTERNAL;
+        SendToConn(conn, omnibox::ID_MOVE_NODE_RSP, code, response->message(), client_seq_id, response->SerializeAsString());
+        };
+
+    auto controller = std::make_shared<MyController>();
+    auto rsp = std::make_shared<omnibox::MoveNodeResponse>();
+    auto closure = new TcpRpcClosure<omnibox::MoveNodeResponse>(conn, controller, rsp, success_cb);
+
+    omnibox::MetaService_Stub stub(meta_channel_.get());
+    stub.MoveNode(controller.get(), req.get(), rsp.get(), closure);
 }
 
 

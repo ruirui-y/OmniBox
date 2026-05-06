@@ -50,6 +50,9 @@ private:
     void HandleDeleteNodeReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header,
         const std::string& pb_data);                                                                                    // 处理删除节点请求
 
+    void HandleMoveNodeReq(const std::shared_ptr<TcpConnection>& conn, const omnibox::PacketHeader& header,
+        const std::string& pb_data);                                                                                    // 处理移动节点请求
+
     void SendToConn(const std::shared_ptr<TcpConnection>& conn, uint32_t msg_id,
         omnibox::ErrorCode err_code,
         const std::string& err_msg,

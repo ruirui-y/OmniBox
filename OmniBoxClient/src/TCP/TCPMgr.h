@@ -53,6 +53,7 @@ signals:
     void SigFolderCreated(const omnibox::CreateFolderResponse& rsp);                                // 新建文件夹响应
     void SigNodeDeleted(const omnibox::DeleteNodeResponse& rsp);                                    // 删除节点响应
     void SigNodeRenamed(const omnibox::RenameNodeResponse& rsp);
+    void SigNodeMoved(const omnibox::MoveNodeResponse& rsp);                                        // 移动节点
 
 private:
     void InitTcpSocket();                                                                           // 初始化TCP套接字

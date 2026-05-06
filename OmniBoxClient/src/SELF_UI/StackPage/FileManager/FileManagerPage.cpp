@@ -8,9 +8,11 @@
 #include "ThreadPool.h"
 #include "CinemaMessageBox.h"
 #include "UserMgr.h"
+#include "CinemaInputDialog.h"
+
 
 FileManagerPage::FileManagerPage(QWidget* parent) : QWidget(parent)
-, m_currentParentId(0)
+, m_currentParentId(0), m_cutNodeId(-1)
 {
     setAttribute(Qt::WA_StyledBackground, true);
     setObjectName("FileManagerPage");
@@ -24,6 +26,7 @@ FileManagerPage::FileManagerPage(QWidget* parent) : QWidget(parent)
     connect(ThreadPool::Instance()->GetTCPMgr(), &TCPMgr::SigFolderCreated, this, &FileManagerPage::onCreateFolderRsp);
     connect(ThreadPool::Instance()->GetTCPMgr(), &TCPMgr::SigNodeDeleted, this, &FileManagerPage::onDeleteNodeRsp);
     connect(ThreadPool::Instance()->GetTCPMgr(), &TCPMgr::SigNodeRenamed, this, &FileManagerPage::onRenameNodeRsp);
+    connect(ThreadPool::Instance()->GetTCPMgr(), &TCPMgr::SigNodeMoved, this, &FileManagerPage::onMoveNodeRsp);
 
     // 💡 启动时：默认拉取根目录 (parent_id = 0)
     RequestListDirectory(m_currentParentId);
@@ -45,6 +48,11 @@ void FileManagerPage::BuildUI()
     m_pathLabel = new QLabel(u8"当前位置: 根目录", this);
     m_pathLabel->setObjectName("pathLabel");
 
+    m_btnPaste = new QPushButton(u8"📋 粘贴到此", this);
+    m_btnPaste->setObjectName("controlBtn");
+    m_btnPaste->setMinimumSize(100, 35);
+    m_btnPaste->setVisible(false);
+
     QPushButton* btnNewFolder = new QPushButton(u8"📁 新建文件夹", this);
     btnNewFolder->setObjectName("controlBtn");
     btnNewFolder->setMinimumSize(120, 35);
@@ -56,6 +64,7 @@ void FileManagerPage::BuildUI()
     topLayout->addWidget(btnBack);
     topLayout->addWidget(m_pathLabel);
     topLayout->addStretch();
+    topLayout->addWidget(m_btnPaste);
     topLayout->addWidget(btnNewFolder);
     topLayout->addWidget(btnRefresh);
 
@@ -85,6 +94,7 @@ void FileManagerPage::BuildUI()
     // ================= 3. 信号绑定 =================
     connect(btnBack, &QPushButton::clicked, this, &FileManagerPage::onBtnBackClicked);
     connect(btnNewFolder, &QPushButton::clicked, this, &FileManagerPage::onBtnNewFolderClicked);
+    connect(m_btnPaste, &QPushButton::clicked, this, &FileManagerPage::onBtnPasteClicked);
     connect(btnRefresh, &QPushButton::clicked, this, &FileManagerPage::onBtnRefreshClicked);
 
     connect(m_fileTable, &QTableWidget::cellDoubleClicked, this, &FileManagerPage::onTableDoubleClicked);
@@ -93,6 +103,7 @@ void FileManagerPage::BuildUI()
     // ================= 4. 初始化右键菜单 =================
     m_contextMenu = new QMenu(this);
     m_contextMenu->setObjectName("fileContextMenu");
+    m_contextMenu->addAction(u8"✂️ 剪切", this, &FileManagerPage::onActionCut); // 👑 新增：剪切
     m_contextMenu->addAction(u8"✏️ 重命名", this, &FileManagerPage::onActionRename);
     m_contextMenu->addAction(u8"🗑️ 删除", this, &FileManagerPage::onActionDelete);
 }
@@ -165,7 +176,9 @@ void FileManagerPage::onTableDoubleClicked(int row, int column)
 void FileManagerPage::onBtnNewFolderClicked()
 {
     bool ok;
-    QString folderName = QInputDialog::getText(this, u8"新建文件夹", u8"请输入文件夹名称:", QLineEdit::Normal, u8"新建文件夹", &ok);
+    // 👑 使用原生的深度定制框替换 QInputDialog
+    QString folderName = CinemaInputDialog::GetInput(this, u8"新建文件夹", u8"请输入新文件夹的名称:", u8"新建文件夹", &ok);
+
     if (ok && !folderName.isEmpty()) {
         omnibox::CreateFolderRequest req;
         req.set_user_id(UserMgr::Instance()->GetId());
@@ -199,7 +212,9 @@ void FileManagerPage::onActionRename()
     QString oldName = item->text().remove(u8"📁 ").remove(u8"📄 "); // 去掉图标前缀
 
     bool ok;
-    QString newName = QInputDialog::getText(this, u8"重命名", u8"请输入新名称:", QLineEdit::Normal, oldName, &ok);
+    // 👑 同样替换为自定义输入框
+    QString newName = CinemaInputDialog::GetInput(this, u8"重命名", u8"请输入新的名称:", oldName, &ok);
+
     if (ok && !newName.isEmpty() && newName != oldName) {
         omnibox::RenameNodeRequest req;
         req.set_user_id(UserMgr::Instance()->GetId());
@@ -230,6 +245,56 @@ void FileManagerPage::onActionDelete()
 
 void FileManagerPage::onDeleteNodeRsp(const omnibox::DeleteNodeResponse& rsp)
 {
+    RequestListDirectory(m_currentParentId);
+}
+
+void FileManagerPage::onActionCut()
+{
+    int row = m_fileTable->currentRow();
+    if (row < 0) return;
+
+    // 1. 记录要被移动的节点信息到“虚拟剪切板”
+    QTableWidgetItem* item = m_fileTable->item(row, 0);
+    m_cutNodeId = item->data(Qt::UserRole).toLongLong();
+    m_cutNodeName = item->text().remove(u8"📁 ").remove(u8"📄 ");
+
+    // 2. 激活 UI 粘贴模式
+    m_btnPaste->setText(QString(u8"📋 粘贴 [%1] 到此").arg(m_cutNodeName));
+    m_btnPaste->setVisible(true);
+
+    // 给用户一个轻量提示
+    qDebug() << u8"[FileManager] 剪切成功，请导航到目标文件夹后点击右上角粘贴";
+}
+
+void FileManagerPage::onBtnPasteClicked()
+{
+    // 1. 基本安全校验
+    if (m_cutNodeId == -1) return;
+
+    // 前端防痴呆拦截：不能把文件夹移动到自己当前所在的目录 (原地踏步)
+    // 注意：更严谨的拦截（比如不能把父目录移动到子目录里）需要后端 MetaService 去校验，前端这里只做基础拦截
+    if (m_cutNodeId == m_currentParentId) {
+        CinemaMessageBox::ShowWarning(this, u8"警告", u8"不能将文件夹移动到其自身内部！");
+        return;
+    }
+
+    // 2. 向服务器发送移动请求
+    omnibox::MoveNodeRequest req;
+    req.set_user_id(UserMgr::Instance()->GetId());
+    req.set_node_id(m_cutNodeId);
+    req.set_target_parent_id(m_currentParentId); // 👑 目标地就是我当前所在的目录！
+
+    ThreadPool::Instance()->GetTCPMgr()->SendProtoMsg(omnibox::MsgId::ID_MOVE_NODE_REQ, req);
+
+    // 3. 恢复 UI 状态 (无论成功失败，发完请求就清空剪切板)
+    m_cutNodeId = -1;
+    m_cutNodeName.clear();
+    m_btnPaste->setVisible(false);
+}
+
+void FileManagerPage::onMoveNodeRsp(const omnibox::MoveNodeResponse& rsp)
+{
+    // 收到后端的移动成功响应后，刷新当前目录，就能看到刚刚粘贴过来的文件了！
     RequestListDirectory(m_currentParentId);
 }
 

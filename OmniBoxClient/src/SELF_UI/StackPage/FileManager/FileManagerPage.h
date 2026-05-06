@@ -9,6 +9,8 @@
 #include "common.pb.h"
 #include "server_msg.pb.h"
 
+class QPushButton;
+
 class FileManagerPage : public QWidget
 {
     Q_OBJECT
@@ -21,6 +23,7 @@ private slots:
     void onBtnBackClicked();                                    // 返回上一级
     void onBtnNewFolderClicked();                               // 新建文件夹
     void onBtnRefreshClicked();                                 // 刷新当前目录
+    void onBtnPasteClicked();                                   // 顶部“粘贴到此”按钮
 
     void onTableDoubleClicked(int row, int column);             // 双击进入文件夹
     void onTableContextMenu(const QPoint& pos);                 // 右键菜单 (重命名/删除)
@@ -28,12 +31,14 @@ private slots:
     // ================= 右键菜单动作 =================
     void onActionRename();
     void onActionDelete();
+    void onActionCut();                                         // 右键“剪切”
 
     // ================= 网络数据回执 =================
     void onListDirectoryRsp(const omnibox::ListDirectoryResponse& rsp);
     void onCreateFolderRsp(const omnibox::CreateFolderResponse& rsp);
     void onDeleteNodeRsp(const omnibox::DeleteNodeResponse& rsp);
     void onRenameNodeRsp(const omnibox::RenameNodeResponse& rsp);
+    void onMoveNodeRsp(const omnibox::MoveNodeResponse& rsp);   // 移动节点响应
 
 private:
     void BuildUI();
@@ -48,6 +53,7 @@ private:
 private:
     QTableWidget* m_fileTable;                                  // 文件列表
     QLabel* m_pathLabel;                                        // 当前路径提示 (面包屑)
+    QPushButton* m_btnPaste;                                    // (需要全局控制显示隐藏)
 
     // 核心状态控制：目录漫游栈
     int64_t m_currentParentId;                                  // 当前所处的目录ID (0表示根目录)
@@ -55,6 +61,10 @@ private:
 
     // 右键菜单
     QMenu* m_contextMenu;
+
+    // ================= 状态机：虚拟剪切板 =================
+    int64_t m_cutNodeId;                                        // 当前被剪切的节点ID (-1 表示没剪切任何东西)
+    QString m_cutNodeName;                                      // 当前被剪切的节点名字 (用于 UI 提示)
 };
 
 #endif // FILEMANAGERPAGE_H

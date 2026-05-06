@@ -58,6 +58,12 @@ extern CheckFileRequestDefaultTypeInternal _CheckFileRequest_default_instance_;
 class CheckFileResponse;
 struct CheckFileResponseDefaultTypeInternal;
 extern CheckFileResponseDefaultTypeInternal _CheckFileResponse_default_instance_;
+class CreateFileNodeRequest;
+struct CreateFileNodeRequestDefaultTypeInternal;
+extern CreateFileNodeRequestDefaultTypeInternal _CreateFileNodeRequest_default_instance_;
+class CreateFileNodeResponse;
+struct CreateFileNodeResponseDefaultTypeInternal;
+extern CreateFileNodeResponseDefaultTypeInternal _CreateFileNodeResponse_default_instance_;
 class CreateFolderRequest;
 struct CreateFolderRequestDefaultTypeInternal;
 extern CreateFolderRequestDefaultTypeInternal _CreateFolderRequest_default_instance_;
@@ -2797,7 +2803,7 @@ class FileChunkUploadResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const FileChunkUploadResponse*>(
         &_FileChunkUploadResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(FileChunkUploadResponse& a, FileChunkUploadResponse& b) { a.Swap(&b); }
   inline void Swap(FileChunkUploadResponse* other) {
     if (other == this) return;
@@ -3029,7 +3035,7 @@ class FileChunkUploadRequest final : public ::google::protobuf::Message
     return reinterpret_cast<const FileChunkUploadRequest*>(
         &_FileChunkUploadRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(FileChunkUploadRequest& a, FileChunkUploadRequest& b) { a.Swap(&b); }
   inline void Swap(FileChunkUploadRequest* other) {
     if (other == this) return;
@@ -4110,6 +4116,476 @@ class CreateFolderRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr folder_name_;
     ::int64_t user_id_;
     ::int64_t parent_id_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_server_5fmsg_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CreateFileNodeResponse final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:omnibox.CreateFileNodeResponse) */ {
+ public:
+  inline CreateFileNodeResponse() : CreateFileNodeResponse(nullptr) {}
+  ~CreateFileNodeResponse() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(CreateFileNodeResponse* msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(CreateFileNodeResponse));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR CreateFileNodeResponse(
+      ::google::protobuf::internal::ConstantInitialized);
+
+  inline CreateFileNodeResponse(const CreateFileNodeResponse& from) : CreateFileNodeResponse(nullptr, from) {}
+  inline CreateFileNodeResponse(CreateFileNodeResponse&& from) noexcept
+      : CreateFileNodeResponse(nullptr, std::move(from)) {}
+  inline CreateFileNodeResponse& operator=(const CreateFileNodeResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CreateFileNodeResponse& operator=(CreateFileNodeResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CreateFileNodeResponse& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CreateFileNodeResponse* internal_default_instance() {
+    return reinterpret_cast<const CreateFileNodeResponse*>(
+        &_CreateFileNodeResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 20;
+  friend void swap(CreateFileNodeResponse& a, CreateFileNodeResponse& b) { a.Swap(&b); }
+  inline void Swap(CreateFileNodeResponse* other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CreateFileNodeResponse* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CreateFileNodeResponse* New(::google::protobuf::Arena* arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<CreateFileNodeResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const CreateFileNodeResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const CreateFileNodeResponse& from) { CreateFileNodeResponse::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(
+      ::google::protobuf::MessageLite& to_msg,
+      const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* _InternalSerialize(
+      const MessageLite& msg, ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(CreateFileNodeResponse* other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(
+      ::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "omnibox.CreateFileNodeResponse"; }
+
+ protected:
+  explicit CreateFileNodeResponse(::google::protobuf::Arena* arena);
+  CreateFileNodeResponse(::google::protobuf::Arena* arena, const CreateFileNodeResponse& from);
+  CreateFileNodeResponse(::google::protobuf::Arena* arena, CreateFileNodeResponse&& from) noexcept
+      : CreateFileNodeResponse(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* GetClassData() const PROTOBUF_FINAL;
+  static void* PlacementNew_(const void*, void* mem,
+                             ::google::protobuf::Arena* arena);
+  static constexpr auto InternalNewImpl_();
+  static const ::google::protobuf::internal::ClassDataFull _class_data_;
+
+ public:
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kMessageFieldNumber = 2,
+    kNewNodeIdFieldNumber = 3,
+    kSuccessFieldNumber = 1,
+  };
+  // string message = 2;
+  void clear_message() ;
+  const std::string& message() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_message(Arg_&& arg, Args_... args);
+  std::string* mutable_message();
+  PROTOBUF_NODISCARD std::string* release_message();
+  void set_allocated_message(std::string* value);
+
+  private:
+  const std::string& _internal_message() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(
+      const std::string& value);
+  std::string* _internal_mutable_message();
+
+  public:
+  // int64 new_node_id = 3;
+  void clear_new_node_id() ;
+  ::int64_t new_node_id() const;
+  void set_new_node_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_new_node_id() const;
+  void _internal_set_new_node_id(::int64_t value);
+
+  public:
+  // bool success = 1;
+  void clear_success() ;
+  bool success() const;
+  void set_success(bool value);
+
+  private:
+  bool _internal_success() const;
+  void _internal_set_success(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:omnibox.CreateFileNodeResponse)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      2, 3, 0,
+      46, 2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(
+        ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena);
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena, const Impl_& from,
+                          const CreateFileNodeResponse& from_msg);
+    ::google::protobuf::internal::ArenaStringPtr message_;
+    ::int64_t new_node_id_;
+    bool success_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_server_5fmsg_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CreateFileNodeRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:omnibox.CreateFileNodeRequest) */ {
+ public:
+  inline CreateFileNodeRequest() : CreateFileNodeRequest(nullptr) {}
+  ~CreateFileNodeRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(CreateFileNodeRequest* msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(CreateFileNodeRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR CreateFileNodeRequest(
+      ::google::protobuf::internal::ConstantInitialized);
+
+  inline CreateFileNodeRequest(const CreateFileNodeRequest& from) : CreateFileNodeRequest(nullptr, from) {}
+  inline CreateFileNodeRequest(CreateFileNodeRequest&& from) noexcept
+      : CreateFileNodeRequest(nullptr, std::move(from)) {}
+  inline CreateFileNodeRequest& operator=(const CreateFileNodeRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CreateFileNodeRequest& operator=(CreateFileNodeRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CreateFileNodeRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CreateFileNodeRequest* internal_default_instance() {
+    return reinterpret_cast<const CreateFileNodeRequest*>(
+        &_CreateFileNodeRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 19;
+  friend void swap(CreateFileNodeRequest& a, CreateFileNodeRequest& b) { a.Swap(&b); }
+  inline void Swap(CreateFileNodeRequest* other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CreateFileNodeRequest* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CreateFileNodeRequest* New(::google::protobuf::Arena* arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<CreateFileNodeRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const CreateFileNodeRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const CreateFileNodeRequest& from) { CreateFileNodeRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(
+      ::google::protobuf::MessageLite& to_msg,
+      const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* _InternalSerialize(
+      const MessageLite& msg, ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(CreateFileNodeRequest* other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(
+      ::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "omnibox.CreateFileNodeRequest"; }
+
+ protected:
+  explicit CreateFileNodeRequest(::google::protobuf::Arena* arena);
+  CreateFileNodeRequest(::google::protobuf::Arena* arena, const CreateFileNodeRequest& from);
+  CreateFileNodeRequest(::google::protobuf::Arena* arena, CreateFileNodeRequest&& from) noexcept
+      : CreateFileNodeRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* GetClassData() const PROTOBUF_FINAL;
+  static void* PlacementNew_(const void*, void* mem,
+                             ::google::protobuf::Arena* arena);
+  static constexpr auto InternalNewImpl_();
+  static const ::google::protobuf::internal::ClassDataFull _class_data_;
+
+ public:
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kFileNameFieldNumber = 3,
+    kFileHashFieldNumber = 4,
+    kUserIdFieldNumber = 1,
+    kParentIdFieldNumber = 2,
+    kFileSizeFieldNumber = 5,
+  };
+  // string file_name = 3;
+  void clear_file_name() ;
+  const std::string& file_name() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_file_name(Arg_&& arg, Args_... args);
+  std::string* mutable_file_name();
+  PROTOBUF_NODISCARD std::string* release_file_name();
+  void set_allocated_file_name(std::string* value);
+
+  private:
+  const std::string& _internal_file_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_file_name(
+      const std::string& value);
+  std::string* _internal_mutable_file_name();
+
+  public:
+  // string file_hash = 4;
+  void clear_file_hash() ;
+  const std::string& file_hash() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_file_hash(Arg_&& arg, Args_... args);
+  std::string* mutable_file_hash();
+  PROTOBUF_NODISCARD std::string* release_file_hash();
+  void set_allocated_file_hash(std::string* value);
+
+  private:
+  const std::string& _internal_file_hash() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_file_hash(
+      const std::string& value);
+  std::string* _internal_mutable_file_hash();
+
+  public:
+  // int64 user_id = 1;
+  void clear_user_id() ;
+  ::int64_t user_id() const;
+  void set_user_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_user_id() const;
+  void _internal_set_user_id(::int64_t value);
+
+  public:
+  // int64 parent_id = 2;
+  void clear_parent_id() ;
+  ::int64_t parent_id() const;
+  void set_parent_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_parent_id() const;
+  void _internal_set_parent_id(::int64_t value);
+
+  public:
+  // int64 file_size = 5;
+  void clear_file_size() ;
+  ::int64_t file_size() const;
+  void set_file_size(::int64_t value);
+
+  private:
+  ::int64_t _internal_file_size() const;
+  void _internal_set_file_size(::int64_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:omnibox.CreateFileNodeRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      3, 5, 0,
+      56, 2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(
+        ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena);
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena, const Impl_& from,
+                          const CreateFileNodeRequest& from_msg);
+    ::google::protobuf::internal::ArenaStringPtr file_name_;
+    ::google::protobuf::internal::ArenaStringPtr file_hash_;
+    ::int64_t user_id_;
+    ::int64_t parent_id_;
+    ::int64_t file_size_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -6601,6 +7077,268 @@ inline ::google::protobuf::RepeatedPtrField<::omnibox::NodeInfo>*
 ListDirectoryResponse::_internal_mutable_nodes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.nodes_;
+}
+
+// -------------------------------------------------------------------
+
+// CreateFileNodeRequest
+
+// int64 user_id = 1;
+inline void CreateFileNodeRequest::clear_user_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.user_id_ = ::int64_t{0};
+}
+inline ::int64_t CreateFileNodeRequest::user_id() const {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeRequest.user_id)
+  return _internal_user_id();
+}
+inline void CreateFileNodeRequest::set_user_id(::int64_t value) {
+  _internal_set_user_id(value);
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeRequest.user_id)
+}
+inline ::int64_t CreateFileNodeRequest::_internal_user_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.user_id_;
+}
+inline void CreateFileNodeRequest::_internal_set_user_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.user_id_ = value;
+}
+
+// int64 parent_id = 2;
+inline void CreateFileNodeRequest::clear_parent_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parent_id_ = ::int64_t{0};
+}
+inline ::int64_t CreateFileNodeRequest::parent_id() const {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeRequest.parent_id)
+  return _internal_parent_id();
+}
+inline void CreateFileNodeRequest::set_parent_id(::int64_t value) {
+  _internal_set_parent_id(value);
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeRequest.parent_id)
+}
+inline ::int64_t CreateFileNodeRequest::_internal_parent_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.parent_id_;
+}
+inline void CreateFileNodeRequest::_internal_set_parent_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.parent_id_ = value;
+}
+
+// string file_name = 3;
+inline void CreateFileNodeRequest::clear_file_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_name_.ClearToEmpty();
+}
+inline const std::string& CreateFileNodeRequest::file_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeRequest.file_name)
+  return _internal_file_name();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void CreateFileNodeRequest::set_file_name(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeRequest.file_name)
+}
+inline std::string* CreateFileNodeRequest::mutable_file_name() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_file_name();
+  // @@protoc_insertion_point(field_mutable:omnibox.CreateFileNodeRequest.file_name)
+  return _s;
+}
+inline const std::string& CreateFileNodeRequest::_internal_file_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.file_name_.Get();
+}
+inline void CreateFileNodeRequest::_internal_set_file_name(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_name_.Set(value, GetArena());
+}
+inline std::string* CreateFileNodeRequest::_internal_mutable_file_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.file_name_.Mutable( GetArena());
+}
+inline std::string* CreateFileNodeRequest::release_file_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:omnibox.CreateFileNodeRequest.file_name)
+  return _impl_.file_name_.Release();
+}
+inline void CreateFileNodeRequest::set_allocated_file_name(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.file_name_.IsDefault()) {
+    _impl_.file_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:omnibox.CreateFileNodeRequest.file_name)
+}
+
+// string file_hash = 4;
+inline void CreateFileNodeRequest::clear_file_hash() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_hash_.ClearToEmpty();
+}
+inline const std::string& CreateFileNodeRequest::file_hash() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeRequest.file_hash)
+  return _internal_file_hash();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void CreateFileNodeRequest::set_file_hash(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_hash_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeRequest.file_hash)
+}
+inline std::string* CreateFileNodeRequest::mutable_file_hash() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_file_hash();
+  // @@protoc_insertion_point(field_mutable:omnibox.CreateFileNodeRequest.file_hash)
+  return _s;
+}
+inline const std::string& CreateFileNodeRequest::_internal_file_hash() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.file_hash_.Get();
+}
+inline void CreateFileNodeRequest::_internal_set_file_hash(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_hash_.Set(value, GetArena());
+}
+inline std::string* CreateFileNodeRequest::_internal_mutable_file_hash() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.file_hash_.Mutable( GetArena());
+}
+inline std::string* CreateFileNodeRequest::release_file_hash() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:omnibox.CreateFileNodeRequest.file_hash)
+  return _impl_.file_hash_.Release();
+}
+inline void CreateFileNodeRequest::set_allocated_file_hash(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_hash_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.file_hash_.IsDefault()) {
+    _impl_.file_hash_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:omnibox.CreateFileNodeRequest.file_hash)
+}
+
+// int64 file_size = 5;
+inline void CreateFileNodeRequest::clear_file_size() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_size_ = ::int64_t{0};
+}
+inline ::int64_t CreateFileNodeRequest::file_size() const {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeRequest.file_size)
+  return _internal_file_size();
+}
+inline void CreateFileNodeRequest::set_file_size(::int64_t value) {
+  _internal_set_file_size(value);
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeRequest.file_size)
+}
+inline ::int64_t CreateFileNodeRequest::_internal_file_size() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.file_size_;
+}
+inline void CreateFileNodeRequest::_internal_set_file_size(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_size_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// CreateFileNodeResponse
+
+// bool success = 1;
+inline void CreateFileNodeResponse::clear_success() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.success_ = false;
+}
+inline bool CreateFileNodeResponse::success() const {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeResponse.success)
+  return _internal_success();
+}
+inline void CreateFileNodeResponse::set_success(bool value) {
+  _internal_set_success(value);
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeResponse.success)
+}
+inline bool CreateFileNodeResponse::_internal_success() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.success_;
+}
+inline void CreateFileNodeResponse::_internal_set_success(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.success_ = value;
+}
+
+// string message = 2;
+inline void CreateFileNodeResponse::clear_message() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.message_.ClearToEmpty();
+}
+inline const std::string& CreateFileNodeResponse::message() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeResponse.message)
+  return _internal_message();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void CreateFileNodeResponse::set_message(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.message_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeResponse.message)
+}
+inline std::string* CreateFileNodeResponse::mutable_message() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_message();
+  // @@protoc_insertion_point(field_mutable:omnibox.CreateFileNodeResponse.message)
+  return _s;
+}
+inline const std::string& CreateFileNodeResponse::_internal_message() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.message_.Get();
+}
+inline void CreateFileNodeResponse::_internal_set_message(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.message_.Set(value, GetArena());
+}
+inline std::string* CreateFileNodeResponse::_internal_mutable_message() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.message_.Mutable( GetArena());
+}
+inline std::string* CreateFileNodeResponse::release_message() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:omnibox.CreateFileNodeResponse.message)
+  return _impl_.message_.Release();
+}
+inline void CreateFileNodeResponse::set_allocated_message(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.message_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.message_.IsDefault()) {
+    _impl_.message_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:omnibox.CreateFileNodeResponse.message)
+}
+
+// int64 new_node_id = 3;
+inline void CreateFileNodeResponse::clear_new_node_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.new_node_id_ = ::int64_t{0};
+}
+inline ::int64_t CreateFileNodeResponse::new_node_id() const {
+  // @@protoc_insertion_point(field_get:omnibox.CreateFileNodeResponse.new_node_id)
+  return _internal_new_node_id();
+}
+inline void CreateFileNodeResponse::set_new_node_id(::int64_t value) {
+  _internal_set_new_node_id(value);
+  // @@protoc_insertion_point(field_set:omnibox.CreateFileNodeResponse.new_node_id)
+}
+inline ::int64_t CreateFileNodeResponse::_internal_new_node_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.new_node_id_;
+}
+inline void CreateFileNodeResponse::_internal_set_new_node_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.new_node_id_ = value;
 }
 
 // -------------------------------------------------------------------

@@ -147,6 +147,24 @@ message ListDirectoryResponse {
     repeated NodeInfo nodes = 3; // 这是一个列表！相当于 C++ 里的 std::vector<NodeInfo>
 }
 
+// ----------------------------------------
+// 7. 创建文件节点 (Commit Upload / Mount)
+// ----------------------------------------
+// 物理文件(分片)完全上传成功后，将文件映射到用户的虚拟文件树中
+message CreateFileNodeRequest {
+    int64 user_id = 1;
+    int64 parent_id = 2;        // 挂载到哪个目录下
+    string file_name = 3;       // 文件的展示名字 (如 "学习资料.mp4")
+    string file_hash = 4;       // 刚传完的物理文件哈希 (建立映射关联)
+    int64 file_size = 5;        // 文件大小
+}
+
+message CreateFileNodeResponse {
+    bool success = 1;
+    string message = 2;
+    int64 new_node_id = 3;      // 成功挂载后分配的虚拟节点ID
+}
+
 // ==============================================================================
 // 📦 4. 文件数据面 (TransferService) - 负责大文件的分片上传与落盘
 // ==============================================================================

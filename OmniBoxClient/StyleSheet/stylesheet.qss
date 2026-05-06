@@ -110,6 +110,26 @@
     background-color: rgba(0, 0, 0, 0.2);                           /* 产生下陷的物理阴影感 */
 }
 
+/* ============================================================================== */
+/* 全局自定义输入框 (CinemaLineEdit) 极简暗黑风格                                     */
+/* ============================================================================== */
+#CinemaLineEdit {
+    background-color: rgba(255, 255, 255, 0.05);                    /* 半透明微亮底色 */
+    color: #FFFFFF;                                                 /* 纯白输入文字 */
+    border: 1px solid rgba(255, 255, 255, 0.1);                     /* 极细的边界感 */
+    border-radius: 6px;                                             /* 整体现代圆角设计 */
+    padding: 8px 12px;                                              /* 宽大的内边距撑开呼吸感 */
+    font-weight: bold;
+    font-size: 15px;                                                /* 输入框字号略大 */
+    selection-background-color: #00C3FF;                            /* 选中文本时的底色变科技蓝 */
+    selection-color: #FFFFFF;
+}
+
+#CinemaLineEdit:focus, #CinemaLineEdit:hover {
+    border: 1px solid rgba(0, 195, 255, 0.5);                       /* 获取焦点或悬浮时泛起科技蓝边 */
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
 
 /* ============================================================================== */
 /* 账号管理弹窗 (AccountWidget) 专属样式                                    */

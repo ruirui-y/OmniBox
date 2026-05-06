@@ -51,20 +51,21 @@ private:
     QString FormatSize(int64_t bytes);                          // 格式化文件大小 (KB, MB, GB)
 
 private:
-    QTableWidget* m_fileTable;                                  // 文件列表
-    QLabel* m_pathLabel;                                        // 当前路径提示 (面包屑)
-    QPushButton* m_btnPaste;                                    // (需要全局控制显示隐藏)
+    QTableWidget* file_table_;                                  // 文件列表
+    QLabel* path_label_;                                        // 当前路径提示 (面包屑)
+    QPushButton* btn_paste_;                                    // 粘贴按钮 (需要全局控制显示隐藏)
 
     // 核心状态控制：目录漫游栈
-    int64_t m_currentParentId;                                  // 当前所处的目录ID (0表示根目录)
-    QStack<int64_t> m_historyStack;                             // 历史路径栈 (用于“返回上一级”)
+    int64_t current_parent_id_;                                 // 当前所处的目录ID (0表示根目录)
+    QStack<int64_t> history_stack_;                             // 历史路径栈 (用于“返回上一级”)
+    QStringList path_names_;                                    // 用于存储面包屑路径的名称列表
 
     // 右键菜单
-    QMenu* m_contextMenu;
+    QMenu* context_menu_;
 
     // ================= 状态机：虚拟剪切板 =================
-    int64_t m_cutNodeId;                                        // 当前被剪切的节点ID (-1 表示没剪切任何东西)
-    QString m_cutNodeName;                                      // 当前被剪切的节点名字 (用于 UI 提示)
+    int64_t cut_node_id_;                                       // 当前被剪切的节点ID (-1 表示没剪切任何东西)
+    QString cut_node_name_;                                     // 当前被剪切的节点名字 (用于 UI 提示)
 };
 
 #endif // FILEMANAGERPAGE_H

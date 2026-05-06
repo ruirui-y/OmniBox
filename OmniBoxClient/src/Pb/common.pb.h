@@ -71,6 +71,18 @@ enum MsgId : int {
   ID_HEARTBEAT = 1,
   ID_LOGIN_REQ = 1001,
   ID_LOGIN_RSP = 1002,
+  ID_CREATE_FOLDER_REQ = 3001,
+  ID_CREATE_FOLDER_RSP = 3002,
+  ID_DELETE_NODE_REQ = 3003,
+  ID_DELETE_NODE_RSP = 3004,
+  ID_CHECK_FILE_REQ = 3005,
+  ID_CHECK_FILE_RSP = 3006,
+  ID_RENAME_NODE_REQ = 3007,
+  ID_RENAME_NODE_RSP = 3008,
+  ID_MOVE_NODE_REQ = 3009,
+  ID_MOVE_NODE_RSP = 3010,
+  ID_LIST_DIR_REQ = 3011,
+  ID_LIST_DIR_RSP = 3012,
   MsgId_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   MsgId_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -80,8 +92,8 @@ enum MsgId : int {
 bool MsgId_IsValid(int value);
 extern const uint32_t MsgId_internal_data_[];
 constexpr MsgId MsgId_MIN = static_cast<MsgId>(0);
-constexpr MsgId MsgId_MAX = static_cast<MsgId>(1002);
-constexpr int MsgId_ARRAYSIZE = 1002 + 1;
+constexpr MsgId MsgId_MAX = static_cast<MsgId>(3012);
+constexpr int MsgId_ARRAYSIZE = 3012 + 1;
 const ::google::protobuf::EnumDescriptor*
 MsgId_descriptor();
 template <typename T>
@@ -103,6 +115,11 @@ enum ErrorCode : int {
   ERR_ACCOUNT_EXPIRED = 4,
   ERR_USER_NOT_FOUND = 5,
   ERR_ACCOUNT_BANNED = 6,
+  ERR_NODE_NOT_FOUND = 301,
+  ERR_NODE_EXISTED = 302,
+  ERR_PERMISSION_DENIED = 303,
+  ERR_INVALID_NAME = 304,
+  ERR_DIR_NOT_EMPTY = 305,
   ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -112,8 +129,8 @@ enum ErrorCode : int {
 bool ErrorCode_IsValid(int value);
 extern const uint32_t ErrorCode_internal_data_[];
 constexpr ErrorCode ErrorCode_MIN = static_cast<ErrorCode>(0);
-constexpr ErrorCode ErrorCode_MAX = static_cast<ErrorCode>(6);
-constexpr int ErrorCode_ARRAYSIZE = 6 + 1;
+constexpr ErrorCode ErrorCode_MAX = static_cast<ErrorCode>(305);
+constexpr int ErrorCode_ARRAYSIZE = 305 + 1;
 const ::google::protobuf::EnumDescriptor*
 ErrorCode_descriptor();
 template <typename T>
@@ -121,13 +138,7 @@ const std::string& ErrorCode_Name(T value) {
   static_assert(std::is_same<T, ErrorCode>::value ||
                     std::is_integral<T>::value,
                 "Incorrect type passed to ErrorCode_Name().");
-  return ErrorCode_Name(static_cast<ErrorCode>(value));
-}
-template <>
-inline const std::string& ErrorCode_Name(ErrorCode value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<ErrorCode_descriptor,
-                                                 0, 6>(
-      static_cast<int>(value));
+  return ::google::protobuf::internal::NameOfEnum(ErrorCode_descriptor(), value);
 }
 inline bool ErrorCode_Parse(absl::string_view name, ErrorCode* value) {
   return ::google::protobuf::internal::ParseNamedEnum<ErrorCode>(

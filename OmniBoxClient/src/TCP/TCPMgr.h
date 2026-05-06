@@ -46,6 +46,14 @@ signals:
     void SigLoginSuccess();                                                                         // 登陆成功
     void SigLoginFailed(int errorCode, QString msg);                                                // 登陆失败 (带上 Protobuf 传回来的错误码和提示)
 
+    // =====================================================================================
+    // 虚拟文件系统 (MetaService) 业务响应信号
+    // =====================================================================================
+    void SigListDirectory(const omnibox::ListDirectoryResponse& rsp);                               // 拉取目录列表响应
+    void SigFolderCreated(const omnibox::CreateFolderResponse& rsp);                                // 新建文件夹响应
+    void SigNodeDeleted(const omnibox::DeleteNodeResponse& rsp);                                    // 删除节点响应
+    void SigNodeRenamed(const omnibox::RenameNodeResponse& rsp);
+
 private:
     void InitTcpSocket();                                                                           // 初始化TCP套接字
     void InitHearbeatTimer();                                                                       // 初始化心跳定时器

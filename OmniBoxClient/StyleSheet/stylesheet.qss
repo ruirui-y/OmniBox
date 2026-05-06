@@ -361,3 +361,89 @@ MovieWidget, GameWidget, SettingWidget, DeviceListWidget {
     background-color: #1A1F29;                                                      /* 右侧主内容区深灰蓝底色 */
     border-bottom-right-radius: 8px;                                                /* 完美贴合主窗体右下角 */
 }
+
+/* ============================================================================== */
+/* [3.1] 文件管理页 (FileManagerPage) 内部控件细节                              */
+/* ============================================================================== */
+
+FileManagerPage {
+    background: transparent;
+}
+
+#pathLabel {
+    color: #8A95A5;
+    font-size: 14px;
+    font-weight: bold;
+    padding-left: 10px;
+}
+
+/* ---------------- 通用控制按钮 (新建/刷新/返回) ---------------- */
+#controlBtn {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #E0E6ED;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#controlBtn:hover {
+    border: 1px solid rgba(0, 195, 255, 0.5);
+    background-color: rgba(0, 195, 255, 0.1);
+    color: #00C3FF;
+}
+
+#controlBtn:pressed {
+    background-color: rgba(0, 195, 255, 0.2);
+}
+
+/* ---------------- 文件数据表格 ---------------- */
+#fileTable {
+    background: transparent;
+    alternate-background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    gridline-color: rgba(255, 255, 255, 0.03);
+    color: #E0E6ED;
+    font-size: 13px;
+    outline: none;
+}
+
+#fileTable::item {
+    padding: 6px 8px; /* 略微增高，适合文件浏览 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+#fileTable::item:selected {
+    background-color: rgba(0, 195, 255, 0.1);
+    color: #00C3FF;
+}
+
+#fileTable QHeaderView::section {
+    background-color: #12161E;
+    color: #8A95A5;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.02);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.5);
+    padding: 8px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* ---------------- 右键菜单 (Context Menu) ---------------- */
+#fileContextMenu {
+    background-color: #161A23;
+    color: #E0E6ED;
+    border: 1px solid rgba(0, 195, 255, 0.3);
+    border-radius: 6px;
+}
+
+#fileContextMenu::item {
+    padding: 8px 30px 8px 20px;
+    background: transparent;
+    font-weight: bold;
+}
+
+#fileContextMenu::item:selected {
+    background-color: rgba(0, 195, 255, 0.2);
+    color: #00C3FF;
+}

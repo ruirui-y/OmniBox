@@ -52,7 +52,7 @@ void TCPMgr::InitTcpSocket()
     connect(m_TcpSocket, &QTcpSocket::disconnected, this, [this]() {
         qDebug() << u8"[TCPMgr] 连接已断开";
         StopHeartBeat();
-        emit SigConnectClose();
+        emit SigConnectClose();                                                         // 监听到连接断开，会自动切换到登录界面，然后重新建立tcp连接
 
         // 如果不是主动断开，可以考虑在这里做断线重连逻辑
         if (!m_bIsInitiateDisCon) {

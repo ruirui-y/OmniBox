@@ -10,6 +10,7 @@
 #include "GameItem.h"
 #include "GameWidget.h"
 #include "SettingWidget.h"
+#include "FileManagerPage.h"
 #include "UserMgr.h"
 
 
@@ -51,8 +52,7 @@ ControlHubWindow::ControlHubWindow(QWidget* parent) : QWidget(parent)
     // 4. 左侧边栏 (剥离了 MiniWorld 概念，替换为中控模块名)
     // ==========================================================
     // 配置名称与图标的映射 (图标路径保留你原来的)
-    m_gameItems.insert(u8"宣传视频", ":/MiNi/Images/MiNiWorld/GameCenter.png");
-    m_gameItems.insert(u8"对战控制", ":/MiNi/Images/MiNiWorld/Icon.png");
+    m_gameItems.insert(u8"文件管理", ":/MiNi/Images/MiNiWorld/GameCenter.png");
     m_gameItems.insert(u8"系统设置", ":/MiNi/Images/MiNiWorld/Setting.png");
 
     m_leftList_c = new QListWidget(center);
@@ -67,8 +67,7 @@ ControlHubWindow::ControlHubWindow(QWidget* parent) : QWidget(parent)
     m_leftList_btns->setExclusive(true);                                                // 互斥选中
 
     // 添加核心控制模块
-    AddGameItem(u8"宣传视频");
-    AddGameItem(u8"对战控制");
+    AddGameItem(u8"文件管理");
 
     // 添加弹簧把上面两个标签顶上去
     listLayout->addStretch(1);
@@ -87,6 +86,10 @@ ControlHubWindow::ControlHubWindow(QWidget* parent) : QWidget(parent)
     m_stack = new QStackedLayout();
     m_stack->setContentsMargins(0, 0, 0, 0);
     m_stack->setSpacing(0);
+
+    // 虚拟文件窗口
+    FileManagerPage* file_page = new FileManagerPage();
+    m_stack->addWidget(file_page);
 
     // 绑定侧边栏切换信号
     connect(m_leftList_btns, QOverload<int>::of(&QButtonGroup::buttonClicked),

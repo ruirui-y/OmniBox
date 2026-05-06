@@ -417,34 +417,34 @@ FileManagerPage {
     background-color: rgba(0, 195, 255, 0.2);
 }
 
-/* ---------------- 文件数据表格 ---------------- */
+/* ---------------- 文件数据表格 (现代暗黑重塑版) ---------------- */
 #fileTable {
     background: transparent;
-    alternate-background-color: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    gridline-color: rgba(255, 255, 255, 0.03);
-    color: #E0E6ED;
-    font-size: 13px;
-    outline: none;
+    alternate-background-color: rgba(255, 255, 255, 0.02); /* 非常微弱的斑马纹交替底色 */
+    border: none;                                          /* 彻底移除外边框，让表格融入背景 */
+    color: #E0E6ED;                                        /* 数据行文字颜色 */
+    font-size: 14px;                                       /* 稍微增大一点字号 */
+    outline: none;                                         /* 强行移除选中时的虚线框 */
 }
 
 #fileTable::item {
-    padding: 6px 8px; /* 略微增高，适合文件浏览 */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    padding-left: 10px;                                    /* 👑 给第一列的文件夹图标让出一点左侧边距，不再紧贴边缘 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);    /* 👑 用极其柔和的底部单横线代替原生的全包围网格线 */
 }
 
 #fileTable::item:selected {
-    background-color: rgba(0, 195, 255, 0.1);
-    color: #00C3FF;
+    background-color: rgba(0, 195, 255, 0.1);              /* 浅色科技蓝底板拉满 */
+    color: #00C3FF;                                        /* 科技蓝高亮纯色文字 */
+    border-bottom: 1px solid rgba(0, 195, 255, 0.2);       /* 选中时底部分割线同步变色，防止页面跳动 */
 }
 
+/* 保证表头依然有压迫感，区分数据区 */
 #fileTable QHeaderView::section {
     background-color: #12161E;
     color: #8A95A5;
     border: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.02);
-    border-bottom: 2px solid rgba(0, 0, 0, 0.5);
-    padding: 8px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.5);           /* 底部重阴影压住数据区 */
+    padding: 10px;                                         /* 表头也撑开呼吸感 */
     font-weight: bold;
     font-size: 14px;
 }

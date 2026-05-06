@@ -80,10 +80,12 @@ void FileManagerPage::BuildUI()
     m_fileTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
 
     m_fileTable->setAlternatingRowColors(true);
-    m_fileTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // 禁止双击编辑
+    m_fileTable->setEditTriggers(QAbstractItemView::NoEditTriggers);    // 禁止双击编辑
     m_fileTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_fileTable->verticalHeader()->setVisible(false);
     m_fileTable->setFocusPolicy(Qt::NoFocus);
+    m_fileTable->setShowGrid(false);                                    // 彻底关闭原生的丑陋网格线
+    m_fileTable->verticalHeader()->setDefaultSectionSize(45);           // 统一增加行高，告别拥挤感 (现代 UI 标配)
 
     // 👑 开启自定义右键菜单策略
     m_fileTable->setContextMenuPolicy(Qt::CustomContextMenu);

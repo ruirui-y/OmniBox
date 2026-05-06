@@ -50,6 +50,10 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
 
+    // 关闭全局的系统菜单动画和淡入淡出特效
+    QApplication::setEffectEnabled(Qt::UI_AnimateMenu, false);
+    QApplication::setEffectEnabled(Qt::UI_FadeMenu, false);
+
     // 启动线程池
     ThreadPool::Instance()->Start(4);
 

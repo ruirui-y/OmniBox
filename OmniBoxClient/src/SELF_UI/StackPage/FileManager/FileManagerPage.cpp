@@ -103,7 +103,7 @@ void FileManagerPage::BuildUI()
     // ================= 4. 初始化右键菜单 =================
     m_contextMenu = new QMenu(this);
     m_contextMenu->setObjectName("fileContextMenu");
-    m_contextMenu->addAction(u8"✂️ 剪切", this, &FileManagerPage::onActionCut); // 👑 新增：剪切
+    m_contextMenu->addAction(u8"✂️ 剪切", this, &FileManagerPage::onActionCut);
     m_contextMenu->addAction(u8"✏️ 重命名", this, &FileManagerPage::onActionRename);
     m_contextMenu->addAction(u8"🗑️ 删除", this, &FileManagerPage::onActionDelete);
 }

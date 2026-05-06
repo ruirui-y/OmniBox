@@ -105,12 +105,26 @@ void FileManagerPage::BuildUI()
     connect(file_table_, &QTableWidget::cellDoubleClicked, this, &FileManagerPage::onTableDoubleClicked);
     connect(file_table_, &QTableWidget::customContextMenuRequested, this, &FileManagerPage::onTableContextMenu);
 
-    // ================= 4. 初始化右键菜单 =================
+    // ================= 4. 开启当前 Widget 的拖拽接收权限 =================
+    this->setAcceptDrops(true);
+    // 为了防止底层的 file_table_ 截胡拖拽事件，关掉它的内置拖拽，让事件冒泡给 FileManagerPage 处理
+    file_table_->viewport()->setAcceptDrops(false);
+
+    // ================= 5. 初始化右键菜单 =================
+    // 5.1 针对【文件/文件夹】的菜单
     context_menu_ = new QMenu(this);
     context_menu_->setObjectName("fileContextMenu");
     context_menu_->addAction(u8"✂️ 剪切", this, &FileManagerPage::onActionCut);
     context_menu_->addAction(u8"✏️ 重命名", this, &FileManagerPage::onActionRename);
     context_menu_->addAction(u8"🗑️ 删除", this, &FileManagerPage::onActionDelete);
+
+    // 5.2 👑 针对【空白区域】的菜单
+    empty_context_menu_ = new QMenu(this);
+    empty_context_menu_->setObjectName("fileContextMenu");
+    empty_context_menu_->addAction(u8"⬆️ 上传文件", this, &FileManagerPage::onActionUploadFile);
+    empty_context_menu_->addSeparator(); // 加一条分割线
+    empty_context_menu_->addAction(u8"📁 新建文件夹", this, &FileManagerPage::onBtnNewFolderClicked);
+    empty_context_menu_->addAction(u8"🔄 刷新", this, &FileManagerPage::onBtnRefreshClicked);
 }
 
 // -------------------------------------------------------------------------
@@ -215,12 +229,21 @@ void FileManagerPage::onCreateFolderRsp(const omnibox::CreateFolderResponse& rsp
     RequestListDirectory(current_parent_id_); // 刷新当前列表
 }
 
+// 右键点击
 void FileManagerPage::onTableContextMenu(const QPoint& pos)
 {
     QTableWidgetItem* item = file_table_->itemAt(pos);
-    if (item) {
-        file_table_->selectRow(item->row()); // 确保点击右键时该行被选中
-        context_menu_->exec(QCursor::pos()); // 在鼠标位置弹出菜单
+    if (item) 
+    {
+        // 1. 点在了某个文件/文件夹上
+        file_table_->selectRow(item->row());
+        context_menu_->exec(QCursor::pos());
+    }
+    else 
+    {
+        // 2. 点在了空白处
+        file_table_->clearSelection();      // 取消现有的选中状态，防止误导
+        empty_context_menu_->exec(QCursor::pos());
     }
 }
 
@@ -367,4 +390,111 @@ QString FileManagerPage::FormatSize(int64_t bytes)
     if (bytes < 1024 * 1024) return QString::number(bytes / 1024.0, 'f', 2) + " KB";
     if (bytes < 1024 * 1024 * 1024) return QString::number(bytes / (1024.0 * 1024.0), 'f', 2) + " MB";
     return QString::number(bytes / (1024.0 * 1024.0 * 1024.0), 'f', 2) + " GB";
+}
+
+// =========================================================================
+// 🚀 [上传模块] 拖拽支持 & 原生文件选择
+// =========================================================================
+
+void FileManagerPage::onActionUploadFile()
+{
+    // 调用 Windows 原生文件选择框 (支持多选)
+    QStringList files = QFileDialog::getOpenFileNames(
+        this,
+        u8"选择要上传的文件",
+        "",                                                 // 默认路径
+        u8"所有文件 (*.*)"                                   // 过滤器
+    );
+
+    if (files.isEmpty()) return;
+
+    // 遍历选中的文件，加入上传队列
+    for (const QString& localPath : files) {
+        StartUploadFile(localPath, current_parent_id_);     // 默认上传到当前所在的目录
+    }
+}
+
+// 当外部文件被拖入窗口时的视觉拦截
+void FileManagerPage::dragEnterEvent(QDragEnterEvent* event)
+{
+    // 如果拖进来的是文件路径 (URL 格式)，则允许放下
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
+}
+
+// 当外部文件松开鼠标时的处理
+void FileManagerPage::dropEvent(QDropEvent* event)
+{
+    const QMimeData* mimeData = event->mimeData();
+    if (!mimeData->hasUrls()) return;
+
+    // 1. 绝杀技：判断文件是被扔到了“空白处”还是“某个具体的文件夹上”？
+    int64_t target_folder_id = current_parent_id_;                              // 默认目标是当前目录
+
+    QPoint table_pos = file_table_->mapFrom(this, event->pos());
+    QTableWidgetItem* item = file_table_->itemAt(table_pos);
+
+    if (item) {
+        // 如果鼠标松开的位置有 Item，检查它是不是文件夹
+        bool isDir = file_table_->item(item->row(), 0)->data(Qt::UserRole + 1).toBool();
+        if (isDir) {
+            // 精准投递！提取该目标文件夹的 ID
+            target_folder_id = file_table_->item(item->row(), 0)->data(Qt::UserRole).toLongLong();
+            qDebug() << u8"[FileManager] 触发精准投递！直接上传至子文件夹 ID:" << target_folder_id;
+        }
+    }
+
+    // ==========================================================
+    // 预扫描机制 (防止 for 循环无限弹窗)
+    // ==========================================================
+    QList<QUrl> urlList = mimeData->urls();
+    QStringList validFiles;                                                     // 存放提取出的有效文件
+    bool hasFolder = false;                                                     // 标记是否混入了文件夹
+
+    // 2. 先遍历一遍，过滤分类
+    for (const QUrl& url : urlList) {
+        QString localPath = url.toLocalFile();
+        if (localPath.isEmpty()) continue;
+
+        QFileInfo fileInfo(localPath);
+        if (fileInfo.isDir()) {
+            hasFolder = true; // 发现了文件夹
+        }
+        else {
+            validFiles.append(localPath); // 收集真正的文件
+        }
+    }
+
+    // 3. 如果拖入了文件夹，只给【一次】警告
+    if (hasFolder) {
+        CinemaMessageBox::ShowWarning(this, u8"提示", u8"暂不支持上传文件夹，已自动为您过滤掉文件夹项！");
+
+        // 如果用户拖进来的全是文件夹，过滤后没文件了，就直接结束
+        if (validFiles.isEmpty()) {
+            return;
+        }
+    }
+
+    // 4. 触发真实文件的上传 (只遍历有效的文件列表)
+    for (const QString& localPath : validFiles) {
+        StartUploadFile(localPath, target_folder_id);
+    }
+}
+
+// 统一的上传调度入口
+void FileManagerPage::StartUploadFile(const QString& localPath, int64_t targetFolderId)
+{
+    // 这个函数是连接后续【传输模块】的桥梁
+    // 在这里你需要：
+    // 1. 计算本地文件的哈希 (MD5/SHA1)
+    // 2. 发送 ID_CHECK_FILE_REQ (秒传查岗协议) 给服务器
+    // 3. 将任务抛给后台的 TransferMgr 传输队列
+
+    qDebug() << u8"[Upload] 准备上传:" << localPath << u8"目标目录ID:" << targetFolderId;
+
+    // 临时测试弹窗 (后续对接传输模块后可以去掉)
+    CinemaMessageBox::ShowInfo(this, u8"上传任务触发",
+        QString(u8"已将文件添加到上传队列：\n[%1]\n(目标目录ID: %2)")
+        .arg(localPath).arg(targetFolderId));
 }
